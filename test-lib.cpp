@@ -18,9 +18,11 @@ const char* TestExistException::what()const noexcept{
 TestCase::TestCase(const std::string& testName){
   _testName   = testName;
 }
-void TestCase::addTest(const std::string& testName, void (*test)()){
+void TestCase::addTest(
+  const std::string& testName, const std::function<void()>& func
+){
   if(_tests.count(testName) == 0) 
-    _tests[testName]  = test;
+    _tests[testName] = func;
   else
     throw TestExistException(testName, *this);
 }

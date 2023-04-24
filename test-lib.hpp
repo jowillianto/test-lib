@@ -3,6 +3,7 @@
 #include <exception>
 #include <sstream>
 #include <iostream>
+#include <functional>
 
 #pragma once
 
@@ -10,7 +11,10 @@ namespace Test{
   class TestCase{
     public:
       TestCase(const std::string& testName);
-      void addTest(const std::string& testName, void (*test)());
+      void addTest(
+        const std::string& testName, 
+        const std::function<void()>& func
+      );
       void runAll() const;
       
       // Name
@@ -18,7 +22,7 @@ namespace Test{
       std::string& name();
 
     private:
-      std::map<std::string, void (*)()> _tests;
+      std::map<std::string, std::function<void()>> _tests;
       // Private Function for use
       void _printTestHeader() const;
       void _printTestFooter(
