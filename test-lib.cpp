@@ -45,6 +45,10 @@ void TestCase::runAll() const{
       errors[testName]  = std::string(e);
       _printTestProgression(true);
     }
+    catch(const std::string& e){
+      errors[testName]  = e;
+      _printTestProgression(true);
+    }
   }
   std::cout<<std::endl<<std::endl;
   _printTestFooter(errors, succeeds);
