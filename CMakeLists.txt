@@ -1,0 +1,11 @@
+add_library(test-lib)
+target_sources(test-lib
+  PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/test-lib.hpp
+  PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/test-lib.cpp
+)
+target_include_directories(test-lib
+  PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}
+)
