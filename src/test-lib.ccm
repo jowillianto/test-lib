@@ -5,6 +5,8 @@ module;
 #include <algorithm>
 #include <future>
 #include <shared_mutex>
+#include <iostream>
+#include <format>
 
 export module test_lib;
 export import :randomizer;
@@ -32,8 +34,38 @@ namespace test_lib{
   };
   export class Tester{
     std::vector<TestConfig> _tests;
+    bool _run_in_parallel;
+    std::function<void (uint32_t progress)> _progress_hook;
+    
+    void _print_progress(uint32_t progress){
+      std::cout<<"Current Test Progress : ";
+      std::cout<< std::format("{} / {}\n", progress, test_count());
+    }
 
     public:
+      Tester(
+        std::function<void (uint32_t progress)> progress_hook, 
+        bool parallel = true,
+        bool print_progress = true
+      ){
+        _run_in_parallel = true;
+        if (print_progress)
+          _progress_hook = [this, progress_hook](uint32_t progress){
+            progress_hook(progress);
+            this -> _print_progress(progress);
+          };
+        else
+          _progress_hook = std::move(progress_hook);
+      }
+      Tester(bool parallel = true, bool print_progress = true){
+        if (print_progress)
+          _progress_hook = [this](uint32_t progress){
+            this -> _print_progress(progress);
+          };
+        else
+          _progress_hook = [](uint32_t progress){};
+        _run_in_parallel = true;
+      }
       void add_test(TestConfig config){
         _tests.push_back(std::move(config));
       }
@@ -49,8 +81,11 @@ namespace test_lib{
           throw TestDoesNotExist(name);
         return test_ptr -> run_test();
       }
+      uint32_t test_count() const{
+        return _tests.size();
+      }
 
-      std::vector<TestResult> run_all(bool parallel = true){
+      std::vector<TestResult> run_all() const{
         std::vector<std::future<TestResult> > results_future;
         std::vector<TestResult> results;
 
@@ -58,10 +93,13 @@ namespace test_lib{
         results.reserve(_tests.size());
         
         auto progress = ThreadSafeContainer<uint32_t>{ 0 };
-        auto runner = [&progress] (const TestConfig& config) mutable {
+        auto runner = [this, &progress] (const TestConfig& config) mutable {
           auto result = config.run_test();
-          progress.write([](uint32_t p){
-            return p + 1;
+          progress.write([](uint32_t progress){
+            return progress + 1;
+          });
+          progress.read([this](uint32_t progress){
+            this -> _progress_hook(progress);
           });
           return result;
         };
