@@ -1,8 +1,6 @@
 #include <string>
 #include <map>
 #include <exception>
-#include <sstream>
-#include <iostream>
 #include <functional>
 
 #pragma once
@@ -10,42 +8,42 @@
 namespace Test{
   class TestCase{
     public:
-      TestCase(const std::string& testName);
-      void addTest(
-        const std::string& testName, 
+      TestCase(const std::string& test_name);
+      void add_test(
+        const std::string& test_name, 
         const std::function<void()>& func
       );
-      void runAll() const;
+      void run_all() const;
       
-      // Name
+      // name
       const std::string& name()const;
       std::string& name();
 
     private:
       std::map<std::string, std::function<void()>> _tests;
-      // Private Function for use
-      void _printTestHeader() const;
-      void _printTestFooter(
+      // private function for use
+      void _print_test_header() const;
+      void _print_test_footer(
         const std::map<std::string, std::string>& errors, 
         const std::map<std::string, std::string>& success
       ) const;
       
-      static void _printTestProgression(const bool& err = false);
+      static void _print_test_progression(const bool& err = false);
 
-      static void _printTestErrors(
+      static void _print_test_errors(
         const std::map<std::string, std::string>& errors
       );
-      static void _printTestSucceeds(
+      static void _print_test_succeeds(
         const std::map<std::string, std::string>& succeed
       );
-      std::string _testName;
+      std::string _test_name;
   };
 
   class TestExistException : public std::exception{
     public:
-      TestExistException(const std::string& testName, const TestCase& testCase);
+      TestExistException(const std::string& test_name, const TestCase& TestCase);
       const char* what()const noexcept;
     private:
-      std::string _errMsg;
+      std::string _err_msg;
   };
 }
