@@ -1,0 +1,82 @@
+module;
+
+#include <mutex>
+#include <vector>
+#include <algorithm>
+#include <future>
+#include <shared_mutex>
+
+export module test_lib;
+export import :randomizer;
+export import :data;
+export import :exception;
+
+namespace test_lib{
+  template<typename T>
+  class ThreadSafeContainer{
+    T _value;
+    std::shared_mutex _lock;
+    public:
+      template<typename ...Args>
+      ThreadSafeContainer(Args&& ...args) : 
+        _value(std::forward<Args>(args)...)
+      {}
+      void read(const std::function<void(const T& value)>& func){
+        std::shared_lock<std::shared_mutex> lock{_lock};
+        func(_value);
+      }
+      void write(const std::function<T(const T& value)>& func){
+        std::unique_lock<std::shared_mutex> lock{_lock};
+        _value = func(_value);
+      }
+  };
+  export class Tester{
+    std::vector<TestConfig> _tests;
+
+    public:
+      void add_test(TestConfig config){
+        _tests.push_back(std::move(config));
+      }
+      TestResult run_test(const std::string& name) const{
+        auto test_ptr = std::find_if(
+          _tests.begin(), 
+          _tests.end(), 
+          [&name] (const TestConfig& config) {
+            return config.test_name == name;
+          }
+        );
+        if (test_ptr == _tests.end())
+          throw TestDoesNotExist(name);
+        return test_ptr -> run_test();
+      }
+
+      std::vector<TestResult> run_all(bool parallel = true){
+        std::vector<std::future<TestResult> > results_future;
+        std::vector<TestResult> results;
+
+        results_future.reserve(_tests.size());
+        results.reserve(_tests.size());
+        
+        auto progress = ThreadSafeContainer<uint32_t>{ 0 };
+        auto runner = [&progress] (const TestConfig& config) mutable {
+          auto result = config.run_test();
+          progress.write([](uint32_t p){
+            return p + 1;
+          });
+          return result;
+        };
+        std::transform(
+          _tests.begin(), 
+          _tests.end(), 
+          std::back_inserter(results_future),
+          [&runner](const TestConfig& config){
+            return std::async ( runner, config );
+          }
+        );
+        for(auto& future : results_future ){
+          results.push_back(future.get());
+        }
+        return results;
+      }
+  };
+}
