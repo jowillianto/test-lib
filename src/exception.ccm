@@ -1,0 +1,20 @@
+module;
+
+#include <exception>
+#include <string>
+#include <format>
+
+export module test_lib:exception;
+
+namespace test_lib{
+  class TestDoesNotExist : public std::exception{
+    std::string _message;
+    public:
+    TestDoesNotExist(const std::string& test_name){
+      _message = std::format("{} does not exist", test_name);
+    }
+    const char* what() const noexcept{
+      return _message.c_str();
+    }
+  };
+}

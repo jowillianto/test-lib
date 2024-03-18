@@ -1,0 +1,18 @@
+module;
+#include <random>
+#include <string>
+
+export module test_lib:randomizer;
+
+namespace test_lib{
+  export std::string random_string(uint32_t length) {
+    std::random_device rd{};
+    std::mt19937 gen{ rd() };
+    std::uniform_int_distribution<unsigned char> distribution{ 33, 126 };
+    std::string random_string;
+    random_string.reserve(length);
+    for (uint32_t i = 0; i < length; i += 1)
+      random_string.push_back(distribution(gen));
+    return random_string;
+  }
+}

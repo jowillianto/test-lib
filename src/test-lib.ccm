@@ -1,0 +1,101 @@
+module;
+
+#include <vector>
+#include <algorithm>
+#include <future>
+#include <iostream>
+#include <format>
+
+export module test_lib;
+export import :randomizer;
+export import :data;
+export import :exception;
+export import :container;
+
+namespace test_lib{
+  export class Tester{
+    std::vector<TestConfig> _tests;
+    bool _run_in_parallel;
+    std::function<void (uint32_t progress)> _progress_hook;
+    
+    void _print_progress(uint32_t progress){
+      std::cout<<"Current Test Progress : ";
+      std::cout<< std::format("{} / {}\n", progress, test_count());
+    }
+
+    public:
+      Tester(
+        std::function<void (uint32_t progress)> progress_hook, 
+        bool parallel = true,
+        bool print_progress = true
+      ){
+        _run_in_parallel = true;
+        if (print_progress)
+          _progress_hook = [this, progress_hook](uint32_t progress){
+            progress_hook(progress);
+            this -> _print_progress(progress);
+          };
+        else
+          _progress_hook = std::move(progress_hook);
+      }
+      Tester(bool parallel = true, bool print_progress = true){
+        if (print_progress)
+          _progress_hook = [this](uint32_t progress){
+            this -> _print_progress(progress);
+          };
+        else
+          _progress_hook = [](uint32_t progress){};
+        _run_in_parallel = true;
+      }
+      void add_test(TestConfig config){
+        _tests.push_back(std::move(config));
+      }
+      TestResult run_test(const std::string& name) const{
+        auto test_ptr = std::find_if(
+          _tests.begin(), 
+          _tests.end(), 
+          [&name] (const TestConfig& config) {
+            return config.test_name == name;
+          }
+        );
+        if (test_ptr == _tests.end())
+          throw TestDoesNotExist(name);
+        return test_ptr -> run_test();
+      }
+      uint32_t test_count() const{
+        return _tests.size();
+      }
+
+      std::vector<TestResult> run_all() const{
+        std::vector<std::future<TestResult> > results_future;
+        std::vector<TestResult> results;
+
+        results_future.reserve(_tests.size());
+        results.reserve(_tests.size());
+        
+        auto progress = ThreadSafeContainer<uint32_t>{ 0 };
+        auto runner = [this, &progress] (const TestConfig& config) mutable {
+          auto result = config.run_test();
+          progress.write([](uint32_t progress){
+            return progress + 1;
+          });
+          progress.read([this](uint32_t progress){
+            this -> _progress_hook(progress);
+          });
+          return result;
+        };
+        std::transform(
+          _tests.begin(), 
+          _tests.end(), 
+          std::back_inserter(results_future),
+          [&runner](const TestConfig& config){
+            return std::async ( runner, config );
+          }
+        );
+        for(auto& future : results_future ){
+          results.push_back(future.get());
+        }
+        return results;
+      }
+  };
+}
