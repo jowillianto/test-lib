@@ -17,4 +17,20 @@ namespace test_lib{
       return _message.c_str();
     }
   };
+
+  class FailAssertion : public std::exception{
+    std::string _message;
+    public:
+      FailAssertion(std::string&& message) : _message(message){}
+      const char* what() const noexcept{
+        return _message.c_str();
+      }
+  };
+
+  export void test_assert(
+    const std::function<bool ()>& func, std::string failMessage
+  ){
+    if (!func())
+      throw FailAssertion{std::move(failMessage)};
+  }
 }
