@@ -15,6 +15,5 @@ target_sources(test-lib
       ${CMAKE_CURRENT_LIST_DIR}/src/container.ccm
 )
 
-add_executable(main EXCLUDE_FROM_ALL)
-target_sources(main PRIVATE ${CMAKE_CURRENT_LIST_DIR}/test/main.cpp)
-target_link_libraries(main test-lib)
+add_executable(test-lib::main EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/main.cpp)
+target_link_libraries(test-lib::main test-lib)
