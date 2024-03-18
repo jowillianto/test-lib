@@ -12,6 +12,7 @@ target_sources(test-lib
       ${CMAKE_CURRENT_LIST_DIR}/src/randomizer.ccm
       ${CMAKE_CURRENT_LIST_DIR}/src/data.ccm
       ${CMAKE_CURRENT_LIST_DIR}/src/exception.ccm
+      ${CMAKE_CURRENT_LIST_DIR}/src/container.ccm
 )
 
 add_executable(main)

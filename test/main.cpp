@@ -1,10 +1,10 @@
+
+import test_lib;
 #include <iostream>
 #include <format>
 #include <random>
 #include <thread>
 #include <chrono>
-
-import test_lib;
 
 int main(){
   test_lib::Tester tester;
