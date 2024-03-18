@@ -1,43 +1,54 @@
 module;
 
-#include <string>
-#include <functional>
 #include <format>
+#include <functional>
+#include <numeric>
+#include <string>
 
 export module test_lib:data;
 
-namespace test_lib{
-  export struct TestResult{
+namespace test_lib {
+  export struct TestResult {
     std::string message;
-    bool status;
-  };
-
-  export class TestConfig{
-    std::function<void()> _test_func;
-    public:
     std::string test_name;
-    
-    TestConfig(decltype(test_name) name, decltype(_test_func) func) : 
-      test_name {std::move(name)},
-      _test_func {std::move(func)}
-    {}
+    bool status;
 
-    TestResult run_test() const noexcept{
-      try{
-        _test_func();
-        return TestResult{ 
-          std::format("{} is successful", test_name), 
-          true 
-        };
+    std::string get_print_result() const {
+      return status ? 
+        std::format("{}\nstatus\t:{}\n", test_name, "OK") : 
+        std::format("{}\nstatus\t:{}\nerr\t:{}\n", test_name, "ERR", message);
+    }
+  };
+  export std::string get_print_result(const std::vector<TestResult> &results) {
+    return std::accumulate(
+      results.begin(),
+      results.end(),
+      std::string(),
+      [](const std::string &prev, const TestResult &cur) {
+        return prev + cur.get_print_result();
       }
-      catch (const std::exception& e) {
-        return TestResult{ 
-          std::format(
-            "{} have failed with the following details\n Exception : {}, Error : {}\n",
-            test_name, 
-            typeid(e).name(),
-            e.what()
-          ), 
+    );
+  }
+
+  export class TestConfig {
+    std::function<void()> _test_func;
+
+  public:
+    std::string test_name;
+
+    TestConfig(decltype(test_name) name, decltype(_test_func) func) :
+      test_name{std::move(name)}, _test_func{std::move(func)} {}
+
+    TestResult run_test() const noexcept {
+      try {
+        _test_func();
+        return TestResult{
+          std::format("{} is successful", test_name), test_name, true
+        };
+      } catch (const std::exception &e) {
+        return TestResult{
+          std::format("{}(msg : {})\n", typeid(e).name(), e.what()),
+          test_name,
           false
         };
       }
