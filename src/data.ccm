@@ -12,18 +12,19 @@ namespace test_lib{
     bool status;
   };
 
-  export struct TestConfig{
+  export class TestConfig{
+    std::function<void()> _test_func;
+    public:
     std::string test_name;
-    std::function<void()> test_func;
     
-    TestConfig(decltype(test_name) name, decltype(test_func) func) : 
+    TestConfig(decltype(test_name) name, decltype(_test_func) func) : 
       test_name(std::move(name)),
-      test_func(std::move(func))
+      _test_func(std::move(func))
     {}
 
     TestResult run_test() const{
       try{
-        test_func();
+        _test_func();
         return TestResult{ 
           std::format("{} is successful", test_name), 
           true 
