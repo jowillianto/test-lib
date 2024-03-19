@@ -1,0 +1,66 @@
+module;
+
+#include <vector>
+#include <format>
+
+export module test_lib:assert;
+import :exception;
+
+namespace test_lib{
+  template<typename T, typename V>
+  concept EqualComp = requires(const T& x, const V& v){
+    { x == v } -> std::convertible_to<bool>;
+  };
+  template<typename T, typename V>
+  concept LtComp = requires(const T& x, const V& v){
+    { x < v} -> std::convertible_to<bool>;
+  };
+
+  export template <typename T, EqualComp<T> V>
+  void assert_equal(const T& x, const V& y){
+    if (! (x == y))
+      throw FailAssertion(
+        std::format("{} is not equal to {}", x, y)
+      );
+  }
+
+  export template <typename T, LtComp<T> V>
+  void assert_lt(const T& x, const V& y){
+    if (! (x < y))
+      throw FailAssertion(
+        std::format("{} is not less than {}", x, y)
+      );
+  }
+
+  export template <typename T, EqualComp<T> V>
+  void assert_equal(const std::vector<T>& x, const std::vector<V>& y){
+    if (x.size() != y.size())
+      return;
+    for (uint32_t i = 0; i < x.size(); i += 1){
+      try {
+        assert_equal(x[i], y[i]);
+      }
+      catch (const FailAssertion& e){
+        throw FailAssertion(
+          e.msg() + std::format("at index {}", i)
+        );
+      }
+    }
+  }
+
+  export template <typename T, LtComp<T> V>
+  void assert_lt(const std::vector<T>& x, const std::vector<V>& y){
+    if (x.size() != y.size())
+      return;
+    for (uint32_t i = 0; i < x.size(); i += 1){
+      try {
+        assert_lt(x[i], y[i]);
+      }
+      catch (const FailAssertion& e){
+        throw FailAssertion(
+          e.msg() + std::format("at index {}", i)
+        );
+      }
+    }
+  }
+}

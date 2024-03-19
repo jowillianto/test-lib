@@ -13,6 +13,7 @@ target_sources(test_lib
       ${CMAKE_CURRENT_LIST_DIR}/src/data.ccm
       ${CMAKE_CURRENT_LIST_DIR}/src/exception.ccm
       ${CMAKE_CURRENT_LIST_DIR}/src/container.ccm
+      ${CMAKE_CURRENT_LIST_DIR}/src/assert.ccm
 )
 
 add_executable(

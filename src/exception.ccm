@@ -25,12 +25,8 @@ namespace test_lib{
       const char* what() const noexcept{
         return _message.c_str();
       }
+      const std::string& msg() const{
+        return _message;
+      }
   };
-
-  export void test_assert(
-    const std::function<bool ()>& func, std::string failMessage
-  ){
-    if (!func())
-      throw FailAssertion{std::move(failMessage)};
-  }
 }
