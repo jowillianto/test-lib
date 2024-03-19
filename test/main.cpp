@@ -1,23 +1,18 @@
-
-import test_lib;
-#include <iostream>
-#include <format>
-#include <random>
-#include <thread>
 #include <chrono>
+#include <iostream>
+#include <thread>
+#include <format>
+import test_lib;
 
 int main(){
   test_lib::Tester tester;
-  std::random_device rd;
-  std::mt19937 gen{rd()};
-  std::uniform_int_distribution<uint32_t> distrib(100, 5000);
-  for (uint32_t i = 0; i < distrib(gen); i += 1){
+  for (uint32_t i = 0; i < test_lib::random_integer(100, 5000); i += 1){
     tester.add_test(test_lib::TestConfig{
       std::format("print random string {}", std::to_string(i)), 
-      [i, &gen, &distrib](){
+      [i](){
         std::this_thread::sleep_for(
           std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::milliseconds(distrib(gen))
+            std::chrono::milliseconds(test_lib::random_integer(100, 5000))
           )
         );
         std::cout<<std::format(

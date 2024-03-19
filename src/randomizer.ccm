@@ -15,4 +15,10 @@ namespace test_lib{
       random_string.push_back(distribution(gen));
     return random_string;
   }
+  export uint32_t random_integer(uint32_t a, uint32_t b){
+    std::random_device rd{};
+    std::mt19937 gen{ rd() };
+    std::uniform_int_distribution<uint32_t> distribution{ a, b };
+    return distribution(gen);
+  }
 }

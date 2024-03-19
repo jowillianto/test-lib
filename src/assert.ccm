@@ -13,7 +13,7 @@ namespace test_lib{
   };
   template<typename T, typename V>
   concept LtComp = requires(const T& x, const V& v){
-    { x < v} -> std::convertible_to<bool>;
+    { x < v } -> std::convertible_to<bool>;
   };
 
   export template <typename T, EqualComp<T> V>
