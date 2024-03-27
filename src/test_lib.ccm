@@ -1,6 +1,6 @@
 module;
 
-#include <algorithm>
+#include <memory>
 #include <format>
 #include <future>
 #include <iostream>
@@ -15,7 +15,7 @@ export import :assert;
 
 namespace test_lib {
   export class Tester {
-    std::vector<TestConfig> _tests;
+    std::vector<std::unique_ptr<TestEntry> > _tests;
     bool _run_in_parallel;
     std::function<void(uint32_t progress)> _progress_hook;
 
@@ -48,17 +48,24 @@ namespace test_lib {
         _progress_hook = [](uint32_t progress) {};
       _run_in_parallel = true;
     }
-    void add_test(TestConfig config) {
-      _tests.push_back(std::move(config));
+    template<std::invocable F>
+    void add_test(std::string test_name, F test_func) {
+      _tests.emplace_back(
+        std::make_unique<TestConfig<F> >(
+          std::move(test_name), std::move(test_func)
+        )
+      );
     }
     TestResult run_test(const std::string &name) const {
       auto test_ptr = std::find_if(
         _tests.begin(),
         _tests.end(),
-        [&name](const TestConfig &config) { return config.test_name == name; }
+        [&name](const std::unique_ptr<TestEntry>& config) { 
+          return config -> test_name == name; 
+        }
       );
       if (test_ptr == _tests.end()) throw TestDoesNotExist(name);
-      return test_ptr->run_test();
+      return (*test_ptr) -> run_test();
     }
     uint32_t test_count() const {
       return _tests.size();
@@ -72,8 +79,8 @@ namespace test_lib {
       results.reserve(_tests.size());
 
       auto progress = ThreadSafeContainer<uint32_t>{0};
-      auto runner = [this, &progress](const TestConfig &config) mutable {
-        auto result = config.run_test();
+      auto runner = [this, &progress](TestEntry* config) mutable {
+        auto result = config -> run_test();
         progress.write([](uint32_t progress) { return progress + 1; });
         progress.read([this](uint32_t progress) {
           this->_progress_hook(progress);
@@ -84,8 +91,8 @@ namespace test_lib {
         _tests.begin(),
         _tests.end(),
         std::back_inserter(results_future),
-        [&runner](const TestConfig &config) {
-          return std::async(runner, config);
+        [&runner](const std::unique_ptr<TestEntry> &config) {
+          return std::async(runner, config.get());
         }
       );
       for (auto &future : results_future) {

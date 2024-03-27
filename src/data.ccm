@@ -1,7 +1,6 @@
 module;
 
 #include <format>
-#include <functional>
 #include <numeric>
 #include <string>
 
@@ -30,8 +29,16 @@ namespace test_lib {
     );
   }
 
-  export class TestConfig {
-    std::function<void()> _test_func;
+  class TestEntry{
+    public:
+      std::string test_name;
+      virtual TestResult run_test() const noexcept = 0;
+      virtual ~TestEntry() = default;
+  };
+
+  export template<std::invocable F>
+  class TestConfig : public TestEntry {
+    F _test_func;
 
   public:
     std::string test_name;
