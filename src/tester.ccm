@@ -1,0 +1,201 @@
+module;
+#include <utility>
+#include <algorithm>
+#include <iostream>
+#include <format>
+#include <future>
+export module test_lib:tester;
+import :data;
+import :exception;
+import :container;
+
+namespace test_lib{
+  // Declaration
+  export template < TestEntryC ...Args >
+  class Tester{ };
+  // Recursive Case
+  template < TestEntryC T, TestEntryC ...Args>
+  class Tester <T, Args...>{
+    T _test_entry;
+    const Tester <Args... >& _prev_tester;
+    struct ConstructorParams{
+      T test_entry;
+      const Tester <Args...>& prev_tester;
+    };
+    public:
+      /**
+        Gets if the current Tester supports parallelism. 
+        The data for this is defined in the base case
+      */
+      bool is_parallel() const noexcept {
+        return _prev_tester.is_parallel();
+      }
+      /**
+        Runs the progress hook. 
+        Only the base class have the progress hook hence this call will 
+        recurse until the base case.
+      */
+      void progress_hook (uint32_t progress, uint32_t test_count) const noexcept {
+        _prev_tester.progress_hook(progress, test_count);
+      }
+      /**
+        This will run the test recursively down. This will not create a progress
+        counter and will only accept a progress counter from the uppermost part
+      */
+      std::vector<TestResult> recursive_run(
+        ThreadSafeContainer<uint32_t>& progress, uint32_t test_count
+      ) const noexcept {
+        std::vector<TestResult> results =
+          _prev_tester.recursive_run(progress, test_count);
+        results.emplace_back(_test_entry.run_test());
+        progress.write([](uint32_t progress){ return progress + 1;});
+        progress.read(
+          [this, test_count](uint32_t progress){ 
+            progress_hook(progress, test_count); 
+          }
+        );
+        return results;
+      }
+      /**
+        This will run the test recursively and in parallel.
+      */
+      std::vector<std::future<TestResult> > recursive_parallel_run(
+        ThreadSafeContainer<uint32_t>& progress, uint32_t test_count
+      ) const noexcept {
+        std::vector<std::future<TestResult> > results = 
+          _prev_tester.recursive_parallel_run(progress, test_count);
+        results.emplace_back(
+          std::async(std::launch::async, 
+            [this, &progress, test_count](){
+              TestResult result = _test_entry.run_test();
+              progress.write([](uint32_t progress){ return progress + 1;});
+              progress.read(
+                [this, test_count](uint32_t progress){ 
+                  progress_hook(progress, test_count); 
+                }
+              );
+              return result;
+            }
+          )
+        );
+        return results;
+      }
+      Tester(ConstructorParams params) : 
+        _test_entry(std::move(params.test_entry)),
+        _prev_tester(std::move(params.prev_tester))
+      {}
+      template<std::invocable F>
+      Tester<TestConfig<F>, T, Args...> add_test(
+        std::string name, F test_func
+      ) const noexcept {
+        return Tester<TestConfig<F>, T, Args...>{{
+          .test_entry = TestConfig<F>{{
+            .test_name = std::move(name),
+            .test_func = std::move(test_func)
+          }},
+          .prev_tester = *this
+        }};
+      }
+      uint32_t test_count() const noexcept {
+        return 1 + sizeof ...(Args);
+      }
+      std::vector<TestResult> run_all() const noexcept {
+        ThreadSafeContainer<uint32_t> progress{0};
+        progress.read([this](uint32_t progress){
+          progress_hook(progress, test_count());
+        });
+        if (!is_parallel())
+          return recursive_run(progress, test_count());
+        else{
+          std::vector<std::future<TestResult> > futures =  
+            recursive_parallel_run(progress, test_count());
+          std::vector<TestResult> results;
+          results.reserve(test_count());
+          std::transform(
+            futures.begin(), futures.end(), std::back_inserter(results),
+            [](std::future<TestResult>& fut){
+              return fut.get();
+            }
+          );
+          return results;
+        }
+      }
+
+  };
+  // Base Case
+  template<>
+  class Tester <> {
+    bool _run_in_parallel;
+    void _print_progress(uint32_t progress, uint32_t test_count) const noexcept 
+    {
+      std::cout << "Current Test Progress : ";
+      std::cout << std::format("{} / {}\n", progress, test_count);
+    }
+    public:
+      std::function<void(uint32_t, uint32_t)> progress_hook;
+      bool is_parallel() const noexcept{
+        return _run_in_parallel;
+      }
+      std::vector<TestResult> recursive_run(
+        ThreadSafeContainer<uint32_t>& progress, uint32_t test_count
+      ) const noexcept {
+        std::vector<TestResult> results;
+        results.reserve(test_count);
+        return results;
+      }
+      std::vector<std::future<TestResult> > recursive_parallel_run(
+        ThreadSafeContainer<uint32_t>& progress, uint32_t test_count
+      ) const noexcept {
+        std::vector<std::future<TestResult> > results;
+        results.reserve(test_count);
+        return results;
+      }
+      Tester(
+        std::function<void(uint32_t)> prog_hook,
+        bool run_in_parallel = true,
+        bool print_progress = true
+      ) {
+        _run_in_parallel = run_in_parallel;
+
+        if (print_progress)
+          progress_hook = [prog_hook, this](
+            uint32_t progress, uint32_t test_count
+          ){
+            this -> _print_progress(progress, test_count);
+            prog_hook(progress);
+          };
+        else 
+          progress_hook = [ prog_hook ](
+            uint32_t progress, uint32_t test_count
+          ){ 
+            prog_hook(progress);
+          };
+      }
+      Tester(
+        bool run_in_parallel = true,
+        bool print_progress = true
+      ){
+        _run_in_parallel = run_in_parallel;
+        if (print_progress)
+          progress_hook = [this](
+            uint32_t progress, uint32_t test_count
+          ){
+            this -> _print_progress(progress, test_count);
+          };
+        else 
+          progress_hook = [](uint32_t progress, uint32_t test_count){ };
+      }
+      template<std::invocable F>
+      Tester<TestConfig<F> > add_test(
+        std::string name, F test_func
+      ) const noexcept {
+        return Tester<TestConfig<F> >{{
+          .test_entry = TestConfig<F>{{
+            .test_name = std::move(name),
+            .test_func = std::move(test_func)
+          }},
+          .prev_tester = *this
+        }};
+      }
+  };
+};

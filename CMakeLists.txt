@@ -3,20 +3,31 @@ project(test-lib)
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED true)
 set (CMAKE_CXX_SCAN_FOR_MODULES true)
+add_compile_options("-g")
 
 add_library(test_lib)
+file (
+  GLOB test_lib_ccm
+  "${CMAKE_CURRENT_LIST_DIR}/src/*.ccm"
+)
 target_sources(test_lib
-  PUBLIC 
-    FILE_SET CXX_MODULES FILES
-      ${CMAKE_CURRENT_LIST_DIR}/src/test_lib.ccm
-      ${CMAKE_CURRENT_LIST_DIR}/src/randomizer.ccm
-      ${CMAKE_CURRENT_LIST_DIR}/src/data.ccm
-      ${CMAKE_CURRENT_LIST_DIR}/src/exception.ccm
-      ${CMAKE_CURRENT_LIST_DIR}/src/container.ccm
-      ${CMAKE_CURRENT_LIST_DIR}/src/assert.ccm
+  PUBLIC
+    FILE_SET CXX_MODULES FILES ${test_lib_ccm}
 )
 
 add_executable(
-  test_lib_tests EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/main.cpp
+  test_lib_runtime_test 
+  EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/runtime_test.cpp
 )
-target_link_libraries(test_lib_tests test_lib)
+add_executable(
+  test_lib_compile_test 
+  EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/compile_test.cpp
+)
+add_executable(
+  test_lib_example_linked_list
+  EXCLUDE_FROM_ALL 
+  ${CMAKE_CURRENT_LIST_DIR}/test/linked_list.cpp
+)
+target_link_libraries(test_lib_runtime_test test_lib)
+target_link_libraries(test_lib_compile_test test_lib)
+target_link_libraries(test_lib_example_linked_list test_lib)
