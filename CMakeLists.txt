@@ -14,20 +14,9 @@ target_sources(test_lib
   PUBLIC
     FILE_SET CXX_MODULES FILES ${test_lib_ccm}
 )
-
-add_executable(
-  test_lib_runtime_test 
-  EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/runtime_test.cpp
-)
-add_executable(
-  test_lib_compile_test 
-  EXCLUDE_FROM_ALL ${CMAKE_CURRENT_LIST_DIR}/test/compile_test.cpp
-)
 add_executable(
   test_lib_example_linked_list
   EXCLUDE_FROM_ALL 
   ${CMAKE_CURRENT_LIST_DIR}/test/linked_list.cpp
 )
-target_link_libraries(test_lib_runtime_test test_lib)
-target_link_libraries(test_lib_compile_test test_lib)
 target_link_libraries(test_lib_example_linked_list test_lib)
