@@ -26,7 +26,7 @@ namespace test_lib {
   template<typename T>
   concept TestEntryC = requires ( const T& test) {
     {test.run_test()} -> std::same_as<TestResult>;
-    {test.test_name} -> std::convertible_to<std::string>;
+    {test.get_test_name()} -> std::convertible_to<std::string>;
   };
   
 
@@ -35,37 +35,41 @@ namespace test_lib {
   struct TestConfig{
     private:
       F _test_func;
+      std::string _test_name;
       struct ConstructorParams {
         std::string test_name;
         F test_func;
       };
     public:
-    std::string test_name;
     TestConfig (ConstructorParams params) : 
-      test_name(std::move(params.test_name)),
+      _test_name(std::move(params.test_name)),
       _test_func(std::move(params.test_func))
     {}
+
+    const std::string& get_test_name() const {
+      return _test_name;
+    }
 
     TestResult run_test() const noexcept {
       try {
         _test_func();
         return TestResult{
-          .message = std::format("{} is successful", test_name), 
-          .test_name = test_name, 
+          .message = std::format("{} is successful", get_test_name()), 
+          .test_name = get_test_name(), 
           .status = true
         };
       } 
       catch (const FailAssertion& e) {
         return TestResult{
           .message = std::format("FailAssertion(msg : {})\n", e.what()),
-          .test_name = test_name,
+          .test_name = get_test_name(),
           .status = false
         };
       }
       catch (const std::exception& e) {
         return TestResult{
           .message = std::format("{}(msg : {})\n", typeid(e).name(), e.what()),
-          .test_name = test_name,
+          .test_name = get_test_name(),
           .status = false
         };
       }
