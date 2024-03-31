@@ -73,6 +73,18 @@ class LinkedList{
       }
       return ll_size;
     }
+
+    ~LinkedList() {
+      // Move out all the unique_ptr
+      // This prevents stackoverflow due to recursive calls done from recursively
+      // deleting the nodes
+      // This slows down the code a little but it works in all cases
+      std::unique_ptr<Node<T> > node = std::move(_root);
+      // This will remove the node by moving it out of scope.
+      while (node) {
+        node = std::move(node -> next);
+      }
+    }
 };
 
 int main(int argc, char** argv){
