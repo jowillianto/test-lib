@@ -8,7 +8,7 @@ namespace test_lib{
   export std::string random_string(uint32_t length) {
     std::random_device rd{};
     std::mt19937 gen{ rd() };
-    std::uniform_int_distribution<unsigned char> distribution{ 33, 126 };
+    std::uniform_int_distribution<unsigned char> distribution{ 65, 90 };
     std::string random_string;
     random_string.reserve(length);
     for (uint32_t i = 0; i < length; i += 1)
