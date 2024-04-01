@@ -95,21 +95,21 @@ namespace test_lib {
          .prev_tester = *this}
       };
     }
-    std::array<TestResult, test_count()> run_all() const noexcept {
+    ResultList<test_count()> run_all() const noexcept {
       ThreadSafeContainer<size_t> progress{0};
-      std::array<TestResult, test_count()> results;
+      ResultList<test_count()> results;
       progress.read([this](size_t progress) {
         progress_hook(progress, test_count());
       });
       if (!is_parallel()) {
-        recursive_run(progress, results);
+        recursive_run(progress, results.array);
       } else {
         std::array<std::future<TestResult>, test_count()> futures;
         recursive_parallel_run(progress, futures);
         std::transform(
           futures.begin(),
           futures.end(),
-          results.begin(),
+          results.array.begin(),
           [](std::future<TestResult> &fut) { return fut.get(); }
         );
       }
@@ -178,8 +178,10 @@ namespace test_lib {
       ThreadSafeContainer<size_t> &progress,
       std::array<std::future<TestResult>, size> &array
     ) const noexcept {}
-    std::array<TestResult, 0> run_all() {
-      return std::array<TestResult, test_count()>();
+    ResultList<0> run_all() {
+      return ResultList<0>{
+        .array = std::array<TestResult, 0>{}
+      };
     }
     template <std::invocable F>
     Tester<TestConfig<F>> add_test(std::string name, F test_func)

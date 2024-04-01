@@ -15,7 +15,7 @@ namespace test_lib {
   export template <size_t size, TesterC<size> T>
   void print_result(
     const T &tester,
-    const std::array<TestResult, size> &results,
+    const ResultList<size> &results,
     std::ostream &os = std::cout
   ) {
     std::cout << "================== Test Result =====================\n";
@@ -24,9 +24,11 @@ namespace test_lib {
               << (tester.is_parallel() ? "parallel" : "one-by-one")
               << std::endl;
     std::cout << "Number of test : " << T::test_count() << std::endl;
+    std::cout << "Number of errors : " << results.error_count() << std::endl;
+    std::cout << "Number of OKs : " << results.ok_count() << std::endl;
     std::cout << "================== Test Report =====================\n";
     size_t i = 1;
-    for (const auto &result : results) {
+    for (const auto &result : results.array) {
       std::cout << std::format(
         "{}. {}::{}\n{}",
         i,
