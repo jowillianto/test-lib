@@ -23,5 +23,11 @@ add_executable(
   EXCLUDE_FROM_ALL 
   ${CMAKE_CURRENT_LIST_DIR}/test/multithread_cache.cpp
 )
+add_executable(
+  test_lib_example_many_file
+  EXCLUDE_FROM_ALL 
+  ${CMAKE_CURRENT_LIST_DIR}/test/many_file.cpp
+)
 target_link_libraries(test_lib_example_linked_list test_lib)
 target_link_libraries(test_lib_example_multithread_cache test_lib)
+target_link_libraries(test_lib_example_many_file test_lib)
