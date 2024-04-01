@@ -21,7 +21,7 @@ namespace test_lib {
   class Tester<T, Args...> {
     using PrevTester = Tester<Args...>;
     T _test_entry;
-    const PrevTester &_prev_tester;
+    PrevTester _prev_tester;
     struct ConstructorParams {
       T test_entry;
       const PrevTester &prev_tester;
@@ -191,7 +191,8 @@ namespace test_lib {
            TestConfig<F>{
              {.test_name = std::move(name), .test_func = std::move(test_func)}
            },
-         .prev_tester = *this}
+         .prev_tester = std::move(*this)
+        }
       };
     }
   };
