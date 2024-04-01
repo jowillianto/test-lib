@@ -28,7 +28,11 @@ namespace test_lib {
     size_t i = 0;
     for (const auto &result : results) {
       std::cout << std::format(
-        "{}. {}\n{}", i + 1, result.test_name, result.get_print_result()
+        "{}. {}::{}\n{}",
+        i + 1,
+        tester.get_test_name(),
+        result.test_name,
+        result.get_print_result()
       );
     }
   }
