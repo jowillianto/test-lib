@@ -1,14 +1,18 @@
 module;
 
 #include <format>
+#include <array>
 #include <string>
+#include <future>
 
 export module test_lib:data;
 import :exception;
+import :container;
 
 namespace test_lib {
   /**
-   * @brief Holds the result to a test. This code is not compile time sadly.
+   * @brief Holds the result to a test. This code cannot be compile time. Since
+   * test results are only known after running the test. 
   */
   struct TestResult {
     std::string message;
@@ -17,8 +21,8 @@ namespace test_lib {
 
     std::string get_print_result() const {
       return status ? 
-        std::format("{}\nstatus\t:{}\n", test_name, "OK") : 
-        std::format("{}\nstatus\t:{}\nerr\t:{}\n", test_name, "ERR", message);
+        std::format("status\t:{}\n", "OK") : 
+        std::format("status\t:{}\nerr\t:{}\n", "ERR", message);
     }
   };
 
@@ -27,6 +31,29 @@ namespace test_lib {
   concept TestEntryC = requires ( const T& test) {
     {test.run_test()} -> std::same_as<TestResult>;
     {test.get_test_name()} -> std::convertible_to<std::string>;
+  };
+
+  template<class T, size_t test_count>
+  concept TesterC = requires (const T& tester) {
+    { tester.is_parallel() } -> std::same_as<bool>;
+    { tester.progress_hook(std::declval<size_t>(), std::declval<size_t>())};
+    { tester.get_test_name() } -> std::convertible_to<std::string>;
+    {
+      tester.recursive_run(
+        std::declval<ThreadSafeContainer<size_t>& >(),
+        std::declval<std::array<TestResult, test_count>& >()
+      )
+    };
+    {
+      tester.recursive_parallel_run(
+        std::declval<ThreadSafeContainer<size_t>& >(),
+        std::declval<std::array<std::future<TestResult> , test_count>& >()
+      )
+    };
+    {
+      tester.run_all()
+    } -> std::same_as<std::array<TestResult, test_count> >;
+    { T::test_count() } -> std::same_as<size_t>;
   };
   
 

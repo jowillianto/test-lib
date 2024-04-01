@@ -1,8 +1,7 @@
 module;
 
-#include <iostream>
-#include <vector>
 #include <format>
+#include <iostream>
 
 export module test_lib;
 export import :randomizer;
@@ -13,13 +12,24 @@ export import :assert;
 export import :tester;
 
 namespace test_lib {
-  export void print_result(
-    const std::vector<TestResult> &results, std::ostream &os = std::cout
+  export template <size_t size, TesterC<size> T>
+  void print_result(
+    const T &tester,
+    const std::array<TestResult, size> &results,
+    std::ostream &os = std::cout
   ) {
-    std::cout<<"================== Test Result =====================\n";
-    for (uint32_t i = 0; i < results.size(); i += 1) {
-      std::cout<< std::format("{}. ", i + 1);
-      std::cout<< results[i].get_print_result() << std::endl;
+    std::cout << "================== Test Result =====================\n";
+    std::cout << "Test Suite : " << tester.get_test_name() << std::endl;
+    std::cout << "Run type : "
+              << (tester.is_parallel() ? "parallel" : "one-by-one")
+              << std::endl;
+    std::cout << "Number of test : " << T::test_count() << std::endl;
+    std::cout << "================== Test Report =====================\n";
+    size_t i = 0;
+    for (const auto &result : results) {
+      std::cout << std::format(
+        "{}. {}\n{}", i + 1, result.test_name, result.get_print_result()
+      );
     }
   }
 }

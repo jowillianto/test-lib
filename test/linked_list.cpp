@@ -93,7 +93,7 @@ int main(int argc, char** argv){
   }
   uint32_t fuzz_count = static_cast<uint32_t>(atoi(argv[1]));
   fuzz_count = fuzz_count >= 10 ? fuzz_count : 10;
-  auto tester = test_lib::Tester<>{}
+  auto tester = test_lib::Tester<>{ "LinkedList Normal Test" }
     .add_test(
       "fuzz_test", 
       [ fuzz_count ](){
@@ -183,6 +183,5 @@ int main(int argc, char** argv){
       ll.delete_node(0);
       test_lib::assert_equal(ll[0], v + 2);
     });
-  auto results = tester.run_all();
-  test_lib::print_result(results);
+  test_lib::print_result(tester, tester.run_all());
 }

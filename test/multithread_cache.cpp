@@ -51,7 +51,7 @@ class Cache{
 
 int main(){
   Cache<std::string, uint32_t> cache;
-  auto tester = test_lib::Tester<>{false}
+  auto tester = test_lib::Tester<>{"Multithread Cache Test", false}
     .add_test("simultaneous access from two threads", [&](){
       std::thread([&](){
         cache.get_or_insert("a", [](){
@@ -82,5 +82,5 @@ int main(){
       if (status == std::future_status::timeout)
         throw std::bad_exception();
     });
-  test_lib::print_result(tester.run_all());
+  test_lib::print_result(tester, tester.run_all());
 }
