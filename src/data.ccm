@@ -21,7 +21,7 @@ namespace test_lib {
 
     std::string get_print_result() const {
       return status ? 
-        std::format("status\t:{}\n", "OK") : 
+        std::format("status\t:{}\n\n", "OK") : 
         std::format("status\t:{}\nerr\t:{}\n", "ERR", message);
     }
   };
