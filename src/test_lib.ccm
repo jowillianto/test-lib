@@ -39,4 +39,16 @@ namespace test_lib {
       i += 1;
     }
   }
+  void run_all_and_print() { }
+  export template <typename T>
+  void run_all_and_print(const T &tester) {
+    print_result(tester, tester.run_all());
+  }
+  export template <typename T, typename... Args>
+  void run_all_and_print(
+    const T &tester, Args&& ...args
+  ) {
+    run_all_and_print(tester);
+    run_all_and_print(std::forward<Args>(args)...);
+  }
 }
