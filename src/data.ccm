@@ -15,7 +15,7 @@ namespace test_lib {
    * @brief Holds the result to a test. This code cannot be compile time. Since
    * test results are only known after running the test. 
   */
-  struct TestResult {
+  export struct TestResult {
     std::string message;
     std::string test_name;
     bool status;
@@ -33,7 +33,7 @@ namespace test_lib {
     {test.run_test()} -> std::same_as<TestResult>;
     {test.get_test_name()} -> std::convertible_to<std::string>;
   };
-  template<size_t size>
+  export template<size_t size>
   struct ResultList {
     std::array<TestResult, size> array;
     size_t error_count() const{
@@ -80,7 +80,7 @@ namespace test_lib {
   
 
   // Functor Implementation
-  template<std::invocable F>
+  export template<std::invocable F>
   struct TestConfig{
     private:
       F _test_func;
