@@ -52,7 +52,7 @@ namespace test_lib {
     Cheks the equality of two containers supporting the ranges paradigm.
   */
   export template <std::ranges::forward_range T, std::ranges::forward_range V>
-    requires(EqualComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>>)
+    requires(EqualComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !EqualComp<T, V>)
   void assert_equal(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
@@ -75,7 +75,7 @@ namespace test_lib {
   }
 
   export template <std::ranges::forward_range T, std::ranges::forward_range V>
-    requires(LtComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>>)
+    requires(LtComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !LtComp<T, V>)
   void assert_lt(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
