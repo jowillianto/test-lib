@@ -1,24 +1,92 @@
 module;
 #include <random>
+#include <ranges>
 #include <string>
 
 export module test_lib:randomizer;
 
-namespace test_lib{
-  export std::string random_string(uint32_t length) {
-    std::random_device rd{};
-    std::mt19937 gen{ rd() };
-    std::uniform_int_distribution<unsigned char> distribution{ 65, 90 };
-    std::string random_string;
-    random_string.reserve(length);
-    for (uint32_t i = 0; i < length; i += 1)
-      random_string.push_back(distribution(gen));
-    return random_string;
+namespace test_lib {
+
+  /*
+    Hard coded string for randomness
+  */
+
+  /*
+    All readable ascii letters.
+  */
+  export constexpr auto ascii_letters = std::string_view{
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890~`!@#$%^&*()-=_+{}[]\\|:;\"\'<>,.?/"
+  };
+  /*
+    All readable ascii lowercase letters
+  */
+  export constexpr auto ascii_lowercase =
+    std::string_view{ascii_letters.begin(), ascii_letters.begin() + 26};
+  /*
+    All readable ascii uppercase letters
+  */
+  export constexpr auto ascii_uppercase =
+    std::string_view{ascii_letters.begin() + 26, ascii_letters.begin() + 52};
+  /*
+    All readable ascii numbers.
+  */
+  export constexpr auto ascii_numbers =
+    std::string_view{ascii_letters.begin() + 52, ascii_letters.begin() + 62};
+
+  /*
+    This creates an internal random number generator.
+  */
+  export struct Generator {
+    mutable std::random_device rd;
+    mutable std::mt19937 gen;
+
+    Generator() : rd{}, gen{rd()} {}
+  };
+  Generator generator;
+  
+  export const Generator& get_internal_generator() {
+    return generator;
   }
-  export uint32_t random_integer(uint32_t a, uint32_t b){
-    std::random_device rd{};
-    std::mt19937 gen{ rd() };
-    std::uniform_int_distribution<uint32_t> distribution{ a, b };
-    return distribution(gen);
+  /*
+    Random Algorithms using the generator defined above.
+  */
+
+  /*
+    Randomly picks an element bounded by the iterators begin, end. Returns a reference to the
+    element specified by the iterator bounds.
+  */
+  export template <std::ranges::forward_range T>
+    requires(std::convertible_to<std::ranges::range_size_t<T>, size_t>)
+  const std::ranges::range_value_t<T> &random_pick(
+    const T &container, const Generator &gen = get_internal_generator()
+  ) {
+    const auto begin = std::ranges::begin(container);
+    const auto end = std::ranges::end(container);
+    const auto dist = std::ranges::size(container);
+    std::uniform_int_distribution<std::ranges::range_size_t<T>> distrib{0, dist - 1};
+    const size_t picked_dist = distrib(gen.gen);
+    return *(begin + picked_dist);
+  }
+
+  export std::string random_string(
+    size_t length,
+    std::string_view choices = ascii_lowercase,
+    const Generator &gen = get_internal_generator()
+  ) {
+    std::string generated_str;
+    generated_str.reserve(length);
+    for (size_t i = 0; i < length; i += 1)
+      generated_str.push_back(random_pick(choices));
+    return generated_str;
+  }
+  export template<std::integral T>
+  T random_integer(T a, T b, const Generator& gen = get_internal_generator()) {
+    std::uniform_int_distribution<T> distribution{a, b};
+    return distribution(gen.gen);
+  }
+  export template<std::floating_point T>
+  T random_real(T a, T b, const Generator& gen = get_internal_generator()) {
+    std::uniform_real_distribution<T> distribution { a, b};
+    return distribution(gen.gen);
   }
 }

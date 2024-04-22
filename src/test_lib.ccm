@@ -1,54 +1,7 @@
-module;
-
-#include <format>
-#include <iostream>
-
 export module test_lib;
 export import :randomizer;
-export import :data;
 export import :exception;
-export import :container;
 export import :assert;
-export import :tester;
-
-namespace test_lib {
-  export template <size_t size, TesterC<size> T>
-  void print_result(
-    const T &tester,
-    const ResultList<size> &results,
-    std::ostream &os = std::cout
-  ) {
-    std::cout << "================== Test Result =====================\n";
-    std::cout << "Test Suite : " << tester.get_test_name() << std::endl;
-    std::cout << "Run type : "
-              << (tester.is_parallel() ? "parallel" : "one-by-one")
-              << std::endl;
-    std::cout << "Number of test : " << T::test_count() << std::endl;
-    std::cout << "Number of errors : " << results.error_count() << std::endl;
-    std::cout << "Number of OKs : " << results.ok_count() << std::endl;
-    std::cout << "================== Test Report =====================\n";
-    size_t i = 1;
-    for (const auto &result : results.array) {
-      std::cout << std::format(
-        "{}. {}::{}\n{}",
-        i,
-        tester.get_test_name(),
-        result.test_name,
-        result.get_print_result()
-      );
-      i += 1;
-    }
-  }
-  void run_all_and_print() { }
-  export template <typename T>
-  void run_all_and_print(const T &tester) {
-    print_result(tester, tester.run_all());
-  }
-  export template <typename T, typename... Args>
-  void run_all_and_print(
-    const T &tester, Args&& ...args
-  ) {
-    run_all_and_print(tester);
-    run_all_and_print(std::forward<Args>(args)...);
-  }
-}
+export import :test_suite;
+import :test_result;
+import :test_config;

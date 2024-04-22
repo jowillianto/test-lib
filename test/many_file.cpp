@@ -1,20 +1,21 @@
 import test_lib;
+#include <format>
 
 int main() {
-  auto tester = test_lib::Tester<>{ "Many entry test" }
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){})
-    .add_test(test_lib::random_string(10), [](){});
-  test_lib::ResultList<tester.test_count()> results = tester.run_all();
-  test_lib::assert_equal (results.ok_count(), tester.test_count());
+  auto tester = test_lib::Tester<>{"Many entry test"}
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {})
+                  .add_test(test_lib::random_string(10), []() {});
+  tester.run_all();
+  tester.print_or_exit();
 }

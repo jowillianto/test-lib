@@ -1,32 +1,34 @@
 module;
 
 #include <exception>
-#include <string>
 #include <format>
+#include <string>
 
 export module test_lib:exception;
 
-namespace test_lib{
-  class TestDoesNotExist : public std::exception{
+namespace test_lib {
+  class TestDoesNotExist : public std::exception {
     std::string _message;
-    public:
-    TestDoesNotExist(const std::string& test_name){
+
+  public:
+    TestDoesNotExist(const std::string &test_name) {
       _message = std::format("{} does not exist", test_name);
     }
-    const char* what() const noexcept{
+    const char *what() const noexcept {
       return _message.c_str();
     }
   };
 
-  class FailAssertion : public std::exception{
+  class FailAssertion : public std::exception {
     std::string _message;
-    public:
-      FailAssertion(std::string&& message) : _message(message){}
-      const char* what() const noexcept{
-        return _message.c_str();
-      }
-      const std::string& msg() const{
-        return _message;
-      }
+
+  public:
+    FailAssertion(std::string &&message) : _message(message) {}
+    const char *what() const noexcept {
+      return _message.c_str();
+    }
+    std::string_view msg() const {
+      return _message;
+    }
   };
 }

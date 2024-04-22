@@ -1,0 +1,143 @@
+module;
+#include <atomic>
+#include <concepts>
+#include <format>
+#include <functional>
+#include <future>
+#include <iostream>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <tuple>
+export module test_lib:test_suite;
+import :test_result;
+import :test_config;
+import :exception;
+
+namespace test_lib {
+  export struct TesterConfig {
+    std::string suite_name;
+    bool is_parallel;
+    bool print_progress;
+    std::optional<std::function<void(size_t)>> progress_hook;
+  };
+  export template <std::invocable... Fs> struct Tester {
+    using container_t = std::tuple<TestConfig<Fs>...>;
+
+  public:
+    /*
+      Creates a tester object with the given config. The configuration is immutable.
+    */
+    Tester(TesterConfig config) : _config(std::move(config)) {}
+    /*
+      Creates a tester object with a name
+    */
+    Tester(std::string suite_name) :
+      _config{
+        .suite_name = std::move(suite_name),
+        .is_parallel = true,
+        .print_progress = true,
+        .progress_hook = std::nullopt
+      } {}
+    /*
+      This constructor is for internal use.
+    */
+    Tester(TesterConfig config, container_t tests) :
+      _config(std::move(config)), _tests(std::move(tests)) {}
+    /*
+      The amount of test contained in this tester
+    */
+    static consteval size_t test_count() noexcept {
+      return sizeof...(Fs);
+    }
+    /*
+      If the computation is parallel
+    */
+    bool is_parallel() const {
+      return _config.is_parallel;
+    }
+    /*
+      The name of the suite.
+    */
+    std::string_view suite_name() const {
+      return _config.suite_name;
+    }
+    /*
+      Adds a test
+    */
+    template <std::invocable F>
+    Tester<F, Fs...> add_test(std::string test_name, F test_func) const {
+      auto test_config = TestConfig(test_name, test_func);
+      return Tester<F, Fs...>{
+        std::move(_config),
+        std::tuple_cat(std::make_tuple(std::move(test_config)), std::move(_tests))
+      };
+    }
+    /*
+      Run all the tests with the given configuration
+    */
+    const ResultList<test_count()> &run_all() const noexcept {
+      if (!_result_cache.has_value()) {
+        ResultList<test_count()> results;
+        std::array<std::future<void>, test_count()> futures;
+        std::atomic<size_t> progress;
+        _run_tests<test_count(), 0>(results, futures, progress);
+        for (auto &future : futures) {
+          future.get();
+        }
+        _result_cache = results;
+      }
+      return _result_cache.value();
+    }
+    /*
+      Prints the test results.
+    */
+    void print_or_exit(bool exit_on_error = true) const {
+      const ResultList<test_count()> &results = run_all();
+      std::cout << "================== Test Result =====================\n";
+      std::cout << "Test Suite : " << suite_name() << std::endl;
+      std::cout << "Run type : " << (is_parallel() ? "parallel" : "one-by-one") << std::endl;
+      std::cout << "Number of test : " << test_count() << std::endl;
+      std::cout << "Number of errors : " << results.err_count() << std::endl;
+      std::cout << "Number of OKs : " << results.ok_count() << std::endl;
+      std::cout << "================== Test Report =====================\n";
+      size_t i = 1;
+      for (const TestResult &result : results) {
+        std::cout << std::format("{}. {}::{}\n{}\n", i, suite_name(), result.test_name(), result);
+        i += 1;
+      }
+      if (results.err_count() != 0 && exit_on_error) {
+        throw FailAssertion("There are erroneous test");
+      }
+    }
+
+  private:
+    container_t _tests;
+    TesterConfig _config;
+    mutable std::optional<ResultList<test_count()>> _result_cache;
+
+    /*
+      Recursively runs the test, alternates between lazily evaluated future and threaded future.
+    */
+    template <size_t t = test_count(), size_t cur = 0>
+    void _run_tests(
+      ResultList<t> &results,
+      std::array<std::future<void>, test_count()> &futures,
+      std::atomic<size_t> &progress
+    ) const {
+      futures[cur] = std::async(
+        _config.is_parallel ? std::launch::async : std::launch::deferred,
+        [this, &results, &progress]() mutable {
+          results.template write_result<cur>(std::get<cur>(_tests)());
+          size_t prev_progress = progress.fetch_add(1, std::memory_order::relaxed);
+          if (_config.print_progress)
+            std::cout << std::format("Progress : {} / {}", prev_progress + 1, test_count())
+                      << std::endl;
+          if (_config.progress_hook.has_value()) _config.progress_hook.value()(prev_progress + 1);
+        }
+      );
+      if constexpr (cur + 1 < test_count())
+        _run_tests<test_count(), cur + 1>(results, futures, progress);
+    }
+  };
+}

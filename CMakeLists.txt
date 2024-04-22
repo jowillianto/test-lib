@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.28)
 project(test-lib)
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED true)
 set (CMAKE_CXX_SCAN_FOR_MODULES true)
+set (CMAKE_CXX_COMPILE_FEATURES "-Wall -Werror")
 
 add_library(test_lib)
 file (

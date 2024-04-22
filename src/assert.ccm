@@ -2,8 +2,8 @@
 module;
 
 #include <format>
+#include <ranges>
 #include <source_location>
-#include <vector>
 
 export module test_lib:assert;
 import :exception;
@@ -18,50 +18,59 @@ namespace test_lib {
     { x < v } -> std::convertible_to<bool>;
   };
 
+  /*
+    Checks the equality of two values x and y. Throw a FailAssertion exception when the assertion
+    fails. When used in the scope of a tester, exception will be caught and will invalidate the
+    test.
+  */
   export template <typename T, EqualComp<T> V>
   void assert_equal(
-    const T &x,
-    const V &y,
-    std::source_location location = std::source_location::current()
+    const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (!(x == y))
       throw FailAssertion(std::format(
-        "At {} Line {} , {} is not equal to {}",
-        location.file_name(),
-        location.line(),
-        x,
-        y
+        "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
       ));
   }
 
+  /*
+    Checks if x is less than y. Throw a FailAssertion exception when the assertion
+    fails. When used in the scope of a tester, exception will be caught and will invalidate the
+    test.
+  */
   export template <typename T, LtComp<T> V>
   void assert_lt(
-    const T &x,
-    const V &y,
-    std::source_location location = std::source_location::current()
+    const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (!(x < y))
       throw FailAssertion(std::format(
-        "At {} Line {} , {} is not less than {}",
-        location.file_name(),
-        location.line(),
-        x,
-        y
+        "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
       ));
   }
 
-  export template <typename T, EqualComp<T> V>
+  /*
+    Cheks the equality of two containers supporting the ranges paradigm.
+  */
+  export template <std::ranges::forward_range T, std::ranges::forward_range V>
+    requires(EqualComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>>)
   void assert_equal(
-    const std::vector<T> &x,
-    const std::vector<V> &y,
-    std::source_location location = std::source_location::current()
+    const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (x.size() != y.size()) return;
+    auto beg_x = std::ranges::begin(x);
+    auto end_x = std::ranges::end(x);
+    auto beg_y = std::ranges::begin(y);
+    auto end_y = std::ranges::end(y);
+    while (beg_x != end_x && beg_y != end_y) {
+      assert_equal (*beg_x, *beg_y);
+      beg_y += 1;
+      beg_x += 1;
+    }
+
     for (uint32_t i = 0; i < x.size(); i += 1) {
       try {
         assert_equal(x[i], y[i]);
       } catch (const FailAssertion &e) {
-        throw FailAssertion(e.msg() + std::format("at index {}", i));
+        throw FailAssertion(std::format("{} at index {}", e.msg(), i));
       }
     }
   }
@@ -77,7 +86,7 @@ namespace test_lib {
       try {
         assert_lt(x[i], y[i]);
       } catch (const FailAssertion &e) {
-        throw FailAssertion(e.msg() + std::format("at index {}", i));
+        throw FailAssertion(std::format("{} at index {}", e.msg(), i));
       }
     }
   }
