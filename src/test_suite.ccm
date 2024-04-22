@@ -103,7 +103,8 @@ namespace test_lib {
       std::cout << "================== Test Report =====================\n";
       size_t i = 1;
       for (const TestResult &result : results) {
-        std::cout << std::format("{}. {}::{}\n{}\n", i, suite_name(), result.test_name(), result);
+        std::cout << std::format("{}. {}::{}\n{}\n", i, suite_name(), result.test_name(), result)
+                  << std::endl;
         i += 1;
       }
       if (results.err_count() != 0 && exit_on_error) {
