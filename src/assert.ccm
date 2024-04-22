@@ -60,34 +60,40 @@ namespace test_lib {
     auto end_x = std::ranges::end(x);
     auto beg_y = std::ranges::begin(y);
     auto end_y = std::ranges::end(y);
+    size_t idx = 0;
     while (beg_x != end_x && beg_y != end_y) {
-      assert_equal (*beg_x, *beg_y);
+      try{
+        assert_equal (*beg_x, *beg_y);
+      }
+      catch (const FailAssertion& e) {
+        throw FailAssertion(std::format("{} at index {}", e.msg(), idx));
+      }
       beg_y += 1;
       beg_x += 1;
-    }
-
-    for (uint32_t i = 0; i < x.size(); i += 1) {
-      try {
-        assert_equal(x[i], y[i]);
-      } catch (const FailAssertion &e) {
-        throw FailAssertion(std::format("{} at index {}", e.msg(), i));
-      }
+      idx += 1;
     }
   }
 
-  export template <typename T, LtComp<T> V>
+  export template <std::ranges::forward_range T, std::ranges::forward_range V>
+    requires(LtComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>>)
   void assert_lt(
-    const std::vector<T> &x,
-    const std::vector<V> &y,
-    std::source_location location = std::source_location::current()
+    const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (x.size() != y.size()) return;
-    for (uint32_t i = 0; i < x.size(); i += 1) {
-      try {
-        assert_lt(x[i], y[i]);
-      } catch (const FailAssertion &e) {
-        throw FailAssertion(std::format("{} at index {}", e.msg(), i));
+    auto beg_x = std::ranges::begin(x);
+    auto end_x = std::ranges::end(x);
+    auto beg_y = std::ranges::begin(y);
+    auto end_y = std::ranges::end(y);
+    size_t idx = 0;
+    while (beg_x != end_x && beg_y != end_y) {
+      try{
+        assert_lt (*beg_x, *beg_y);
       }
+      catch (const FailAssertion& e) {
+        throw FailAssertion(std::format("{} at index {}", e.msg(), idx));
+      }
+      beg_y += 1;
+      beg_x += 1;
+      idx += 1;
     }
   }
 }
