@@ -42,7 +42,8 @@ namespace test_lib {
 
     Generator() : rd{}, gen{rd()} {}
   };
-  Generator generator;
+  extern Generator generator;
+  Generator generator{};
   
   export const Generator& get_internal_generator() {
     return generator;
