@@ -4,7 +4,7 @@ module;
 #include <format>
 #include <string>
 
-export module test_lib:exception;
+export module moderna.test_lib:exception;
 
 namespace test_lib {
   class TestDoesNotExist : public std::exception {

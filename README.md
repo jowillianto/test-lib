@@ -3,7 +3,7 @@ A Simple and Light C++23 modules based C++ testing library.
 
 ## Example Usage
 ```cpp
-import test_lib;
+import moderna.test_lib;
 auto tester = test_lib::Tester<>{ "Many entry test" }
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
@@ -15,7 +15,7 @@ test_lib::run_all_and_print(tester);
 ## API Documentation
 ### Creating a Test
 ```cpp
-import test_lib;
+import moderna.test_lib;
 auto tester = test_lib::Tester<>{ 
   "Many entry test", // Name of the test Suite,
   true, // Should runs be done in parallel, 
@@ -32,7 +32,7 @@ auto tester_with_progress_hook = test_lib::Tester<>{
 
 ### Getting the Run Results
 ```cpp
-import test_lib;
+import moderna.test_lib;
 auto tester = test_lib::Tester<>{ "Many entry test" }
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
@@ -54,7 +54,7 @@ tester.print_and_exit();
 ### Performing Assertions
 ```cpp
 #include <vector>
-import test_lib;
+import moderna.test_lib;
 test_lib::assert_equal(1, 1);
 test_lib::assert_lt(0, 1); // Asserts less than
 

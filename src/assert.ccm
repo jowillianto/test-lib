@@ -5,7 +5,7 @@ module;
 #include <ranges>
 #include <source_location>
 
-export module test_lib:assert;
+export module moderna.test_lib:assert;
 import :exception;
 
 namespace test_lib {

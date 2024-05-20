@@ -1,4 +1,4 @@
-import test_lib;
+import moderna.test_lib;
 #include <memory>
 #include <stdexcept>
 

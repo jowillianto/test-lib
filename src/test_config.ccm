@@ -2,7 +2,7 @@ module;
 #include <expected>
 #include <format>
 #include <string>
-export module test_lib:test_config;
+export module moderna.test_lib:test_config;
 import :test_result;
 import :exception;
 

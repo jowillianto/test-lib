@@ -1,4 +1,4 @@
-export module test_lib;
+export module moderna.test_lib;
 export import :randomizer;
 export import :exception;
 export import :assert;

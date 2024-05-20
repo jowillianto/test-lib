@@ -5,7 +5,7 @@ module;
 #include <optional>
 #include <string>
 #include <string_view>
-export module test_lib:test_result;
+export module moderna.test_lib:test_result;
 
 namespace test_lib {
   /*

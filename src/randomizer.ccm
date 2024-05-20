@@ -3,7 +3,7 @@ module;
 #include <ranges>
 #include <string>
 
-export module test_lib:randomizer;
+export module moderna.test_lib:randomizer;
 
 namespace test_lib {
 

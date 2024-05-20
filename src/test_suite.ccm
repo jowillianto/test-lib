@@ -10,7 +10,7 @@ module;
 #include <mutex>
 #include <string_view>
 #include <tuple>
-export module test_lib:test_suite;
+export module moderna.test_lib:test_suite;
 import :test_result;
 import :test_config;
 import :exception;
