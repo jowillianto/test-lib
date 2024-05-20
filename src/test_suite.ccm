@@ -7,6 +7,7 @@ module;
 #include <iostream>
 #include <optional>
 #include <string>
+#include <mutex>
 #include <string_view>
 #include <tuple>
 export module test_lib:test_suite;
@@ -81,7 +82,8 @@ namespace test_lib {
         ResultList<test_count()> results;
         std::array<std::future<void>, test_count()> futures;
         std::atomic<size_t> progress;
-        _run_tests<test_count(), 0>(results, futures, progress);
+        std::mutex print_lock;
+        _run_tests<test_count(), 0>(results, futures, progress, print_lock);
         for (auto &future : futures) {
           future.get();
         }
@@ -124,21 +126,24 @@ namespace test_lib {
     void _run_tests(
       ResultList<t> &results,
       std::array<std::future<void>, test_count()> &futures,
-      std::atomic<size_t> &progress
+      std::atomic<size_t> &progress,
+      std::mutex& print_lock
     ) const {
       futures[cur] = std::async(
         _config.is_parallel ? std::launch::async : std::launch::deferred,
-        [this, &results, &progress]() mutable {
+        [this, &results, &progress, &print_lock]() mutable {
           results.template write_result<cur>(std::get<cur>(_tests)());
           size_t prev_progress = progress.fetch_add(1, std::memory_order::relaxed);
-          if (_config.print_progress)
+          if (_config.print_progress){
+            std::unique_lock l {print_lock};
             std::cout << std::format("Progress : {} / {}", prev_progress + 1, test_count())
                       << std::endl;
+          }
           if (_config.progress_hook.has_value()) _config.progress_hook.value()(prev_progress + 1);
         }
       );
       if constexpr (cur + 1 < test_count())
-        _run_tests<test_count(), cur + 1>(results, futures, progress);
+        _run_tests<test_count(), cur + 1>(results, futures, progress, print_lock);
     }
   };
 }

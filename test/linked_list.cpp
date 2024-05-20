@@ -80,11 +80,7 @@ public:
 };
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    exit(1);
-  }
-  int fuzz_count = static_cast<int>(atoi(argv[1]));
-  fuzz_count = fuzz_count >= 10 ? fuzz_count : 10;
+  auto fuzz_count = test_lib::random_integer(static_cast<int>(1e3), static_cast<int>(5e3));
   auto tester = test_lib::Tester<>{"LinkedList Normal Test"}
                   .add_test(
                     "fuzz_test",
