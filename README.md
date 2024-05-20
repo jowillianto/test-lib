@@ -1,5 +1,5 @@
 # Test Lib
-A Simple and Light C++20 modules based C++ testing library. 
+A Simple and Light C++23 modules based C++ testing library. 
 
 ## Example Usage
 ```cpp
