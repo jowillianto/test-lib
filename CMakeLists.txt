@@ -17,7 +17,7 @@ target_sources(moderna_test_lib
     FILE_SET CXX_MODULES FILES ${moderna_test_lib_src}
 )
 
-if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/../../cmake/CMakeLists.txt)
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/../../cmake/CMakeLists.txt AND PROJECT_IS_TOP_LEVEL)
   include (${CMAKE_CURRENT_LIST_DIR}/../../cmake/CMakeLists.txt)
   add_test_asan_tsan_usan_ubsan(
     moderna_test_lib_linked_list 

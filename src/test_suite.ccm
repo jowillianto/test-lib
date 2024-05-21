@@ -44,7 +44,7 @@ namespace test_lib {
       This constructor is for internal use.
     */
     Tester(TesterConfig config, container_t tests) :
-      _config(std::move(config)), _tests(std::move(tests)) {}
+      _tests(std::move(tests)), _config(std::move(config)){}
     /*
       The amount of test contained in this tester
     */
