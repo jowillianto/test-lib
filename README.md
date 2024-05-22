@@ -4,7 +4,7 @@ A Simple and Light C++23 modules based C++ testing library.
 ## Example Usage
 ```cpp
 import moderna.test_lib;
-auto tester = test_lib::Tester<>{ "Many entry test" }
+auto tester = moderna::test_lib::Tester<>{ "Many entry test" }
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
 
@@ -16,13 +16,13 @@ test_lib::run_all_and_print(tester);
 ### Creating a Test
 ```cpp
 import moderna.test_lib;
-auto tester = test_lib::Tester<>{ 
+auto tester = moderna::test_lib::Tester<>{ 
   "Many entry test", // Name of the test Suite,
   true, // Should runs be done in parallel, 
   false // Should run progress be printed;
 }
 
-auto tester_with_progress_hook = test_lib::Tester<>{
+auto tester_with_progress_hook = moderna::test_lib::Tester<>{
   "Many entry test", // Entry test
   [](size_t progress){}, // Get the progress in a callback functino
   true, // Should runs be done in parallel
@@ -33,14 +33,14 @@ auto tester_with_progress_hook = test_lib::Tester<>{
 ### Getting the Run Results
 ```cpp
 import moderna.test_lib;
-auto tester = test_lib::Tester<>{ "Many entry test" }
+auto tester = moderna::test_lib::Tester<>{ "Many entry test" }
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
 
 /*
   Runs all the tests. 
 */
-const test_lib::ResultList<tester.test_count()>& results = tester.run_all();
+const moderna::test_lib::ResultList<tester.test_count()>& results = tester.run_all();
 size_t ok_count = results.ok_count();
 size_t err_count = results.err_count();
 std::array<TestResult, tester.test_count()> result_array& = tester.array;
@@ -55,11 +55,11 @@ tester.print_and_exit();
 ```cpp
 #include <vector>
 import moderna.test_lib;
-test_lib::assert_equal(1, 1);
-test_lib::assert_lt(0, 1); // Asserts less than
+moderna::test_lib::assert_equal(1, 1);
+moderna::test_lib::assert_lt(0, 1); // Asserts less than
 
 // This can be done on vectors too
-test_lib::assert_equal(
+moderna::test_lib::assert_equal(
   std::vector<uint32_t>({1, 2, 3}), 
   std::vector<uint32_t>({1, 2, 3})
 );

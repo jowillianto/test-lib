@@ -6,6 +6,7 @@ import moderna.test_lib;
 #include <optional>
 #include <shared_mutex>
 
+using namespace moderna;
 template <typename F, typename R, typename... Args>
 concept invocable_r = requires(F f, Args &&...args) {
   { f(std::forward<Args>(args)...) } -> std::convertible_to<R>;

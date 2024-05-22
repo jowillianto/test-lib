@@ -2,6 +2,8 @@ import moderna.test_lib;
 #include <memory>
 #include <stdexcept>
 
+using namespace moderna;
+
 template <typename T> struct Node {
   T value;
   std::unique_ptr<Node> next;

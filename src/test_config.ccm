@@ -6,7 +6,7 @@ export module moderna.test_lib:test_config;
 import :test_result;
 import :exception;
 
-namespace test_lib {
+namespace moderna::test_lib {
   template <std::invocable F> struct TestConfig {
   public:
     /*

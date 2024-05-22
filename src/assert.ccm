@@ -8,7 +8,7 @@ module;
 export module moderna.test_lib:assert;
 import :exception;
 
-namespace test_lib {
+namespace moderna::test_lib {
   template <typename T, typename V>
   concept EqualComp = requires(const T &x, const V &v) {
     { x == v } -> std::convertible_to<bool>;

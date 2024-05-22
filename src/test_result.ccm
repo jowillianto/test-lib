@@ -7,7 +7,7 @@ module;
 #include <string_view>
 export module moderna.test_lib:test_result;
 
-namespace test_lib {
+namespace moderna::test_lib {
   /*
     Holds the result of the test, this includes the message obtained from running the test,
     the error message and the test result status.
@@ -140,12 +140,12 @@ namespace test_lib {
 /*
   Specialization for text formatting.
 */
-template <> struct std::formatter<test_lib::TestResult> : public std::formatter<std::string_view> {
+template <> struct std::formatter<moderna::test_lib::TestResult> : public std::formatter<std::string_view> {
   constexpr auto parse(std::format_parse_context &ctx) const {
     return ctx.begin();
   }
   template<class FormatContext>
-  auto format(const test_lib::TestResult &obj, FormatContext &ctx)
+  auto format(const moderna::test_lib::TestResult &obj, FormatContext &ctx)
     const {
     if (obj.is_ok()) return std::format_to(ctx.out(), "status\t: OK\n\n");
     else {

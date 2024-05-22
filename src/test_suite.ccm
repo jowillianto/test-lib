@@ -15,7 +15,7 @@ import :test_result;
 import :test_config;
 import :exception;
 
-namespace test_lib {
+namespace moderna::test_lib {
   export struct TesterConfig {
     std::string suite_name;
     bool is_parallel;

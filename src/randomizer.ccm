@@ -5,7 +5,7 @@ module;
 
 export module moderna.test_lib:randomizer;
 
-namespace test_lib {
+namespace moderna::test_lib {
 
   /*
     Hard coded string for randomness

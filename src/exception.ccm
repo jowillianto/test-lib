@@ -6,7 +6,7 @@ module;
 
 export module moderna.test_lib:exception;
 
-namespace test_lib {
+namespace moderna::test_lib {
   class TestDoesNotExist : public std::exception {
     std::string _message;
 
