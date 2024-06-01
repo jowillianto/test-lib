@@ -68,7 +68,7 @@ namespace moderna::test_lib {
     */
     template <std::invocable F>
     Tester<F, Fs...> add_test(std::string test_name, F test_func) const {
-      auto test_config = TestConfig(test_name, test_func);
+      auto test_config = TestConfig(std::move(test_name), std::move(test_func));
       return Tester<F, Fs...>{
         std::move(_config),
         std::tuple_cat(std::make_tuple(std::move(test_config)), std::move(_tests))
