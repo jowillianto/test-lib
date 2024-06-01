@@ -22,18 +22,21 @@ if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/../../cmake/CMakeLists.txt AND PROJECT_IS_T
   add_test_asan_tsan_usan_ubsan(
     moderna_test_lib_linked_list 
     ${CMAKE_CURRENT_LIST_DIR}/test/linked_list.cpp
-    moderna_test_lib
+    LIBRARIES 
+      moderna_test_lib
   )
   add_test_asan_tsan_usan_ubsan(
     moderna_test_lib_multithread_cache  
     ${CMAKE_CURRENT_LIST_DIR}/test/multithread_cache.cpp
-    moderna_test_lib
+    LIBRARIES 
+      moderna_test_lib
   )
   add_test_asan_tsan_usan_ubsan(
     moderna_test_lib_many_file 
     ${CMAKE_CURRENT_LIST_DIR}/test/many_file.cpp
-    moderna_test_lib
+    LIBRARIES 
+      moderna_test_lib
   )
-else()
+elseif (PROJECT_IS_TOP_LEVEL)
   message ("To run tests clone https://github.com/jowillianto/moderna")
 endif()

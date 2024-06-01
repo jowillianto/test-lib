@@ -27,7 +27,7 @@ namespace moderna::test_lib {
   void assert_equal(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (!(x == y))
+    if (x != y)
       throw FailAssertion(std::format(
         "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
       ));
@@ -42,7 +42,7 @@ namespace moderna::test_lib {
   void assert_lt(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (!(x < y))
+    if (x >= y)
       throw FailAssertion(std::format(
         "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
       ));
