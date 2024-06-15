@@ -17,7 +17,7 @@ import :exception;
 
 namespace moderna::test_lib {
   export struct TesterConfig {
-    std::string suite_name;
+    std::string_view suite_name;
     bool is_parallel;
     bool print_progress;
     std::optional<std::function<void(size_t)>> progress_hook;
@@ -33,7 +33,7 @@ namespace moderna::test_lib {
     /*
       Creates a tester object with a name
     */
-    Tester(std::string suite_name) :
+    Tester(std::string_view suite_name) :
       _config{
         .suite_name = std::move(suite_name),
         .is_parallel = true,
@@ -67,7 +67,7 @@ namespace moderna::test_lib {
       Adds a test
     */
     template <std::invocable F>
-    Tester<F, Fs...> add_test(std::string test_name, F test_func) const {
+    Tester<F, Fs...> add_test(std::string_view test_name, F test_func) const {
       auto test_config = TestConfig(std::move(test_name), std::move(test_func));
       return Tester<F, Fs...>{
         std::move(_config),

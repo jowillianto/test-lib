@@ -55,7 +55,7 @@ namespace moderna::test_lib {
 
   private:
     std::optional<std::string> _message;
-    std::string _test_name;
+    std::string_view _test_name;
   };
   /*
     Holds a bulk result of the test, this includes all of the messages obtained from running the

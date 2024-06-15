@@ -12,7 +12,7 @@ namespace moderna::test_lib {
     /*
       Initializes and creates a test config with a specific name
     */
-    TestConfig(std::string test_name, F test_func) :
+    TestConfig(std::string_view test_name, F test_func) :
       _invocable{std::move(test_func)}, _test_name{std::move(test_name)} {}
     /*
       This will run the test config with a specific name. Guaranteed that this function
@@ -37,6 +37,6 @@ namespace moderna::test_lib {
 
   private:
     F _invocable;
-    std::string _test_name;
+    std::string_view _test_name;
   };
 }
