@@ -15,11 +15,11 @@ tester.print_or_exit();
 ### Creating a Test
 ```cpp
 import moderna.test_lib;
-auto tester = moderna::test_lib::make_tester{ 
+auto tester = moderna::test_lib::make_tester(
   "Many entry test", // Name of the test Suite,
   true, // Should runs be done in parallel, 
   false // Should run progress be printed;
-}
+)
 
 auto tester_with_progress_hook = moderna::test_lib::make_tester(
   "Many entry test", // Entry test
