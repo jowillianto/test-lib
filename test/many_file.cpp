@@ -3,7 +3,7 @@ import moderna.test_lib;
 using namespace moderna;
 
 int main() {
-  auto tester = test_lib::Tester<>{"Many entry test"}
+  auto tester = test_lib::make_tester("Many entry test")
                   .add_test("entry 1", []() {})
                   .add_test("entry 2", []() {})
                   .add_test("entry 3", []() {})

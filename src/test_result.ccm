@@ -12,21 +12,21 @@ namespace moderna::test_lib {
     Holds the result of the test, this includes the message obtained from running the test,
     the error message and the test result status.
   */
-  struct TestResult {
+  struct test_result {
   public:
-    TestResult() : _test_name{""}, _message{""} {}
+    test_result() : _test_name{""}, _message{""} {}
     /*
-      Initializes the TestResult with only the test name. This implies that the test has succeeded
+      Initializes the test_result with only the test name. This implies that the test has succeeded
       without any errors
     */
-    TestResult(std::string_view test_name) : _test_name{test_name}, _message{std::nullopt} {}
+    test_result(std::string_view test_name) : _test_name{test_name}, _message{std::nullopt} {}
     /*
-      Initializes the TestResult with the test name and err message. This implies a failed test.
+      Initializes the test_result with the test name and err message. This implies a failed test.
     */
-    TestResult(std::string_view test_name, std::string err_message) :
+    test_result(std::string_view test_name, std::string err_message) :
       _test_name{test_name}, _message{err_message} {}
     /*
-      Returns the message contained in this TestResult. This will return the message if the
+      Returns the message contained in this test_result. This will return the message if the
       test incurs an error and empty otherwise.
     */
     std::optional<std::string_view> message() const noexcept {
@@ -61,15 +61,15 @@ namespace moderna::test_lib {
     Holds a bulk result of the test, this includes all of the messages obtained from running the
     test.
   */
-  template <size_t size> struct ResultList {
-    using container_t = std::array<TestResult, size>;
+  template <size_t size> struct result_list {
+    using container_t = std::array<test_result, size>;
 
   public:
-    ResultList() : _ok_cache{std::nullopt}, _err_cache{std::nullopt} {}
+    result_list() : _ok_cache{std::nullopt}, _err_cache{std::nullopt} {}
     /*
       Writes a given value to the container.
     */
-    template <size_t id> void write_result(TestResult result) {
+    template <size_t id> void write_result(test_result result) {
       _container[id] = std::move(result);
       if (_ok_cache.has_value()) _ok_cache = std::nullopt;
       if (_err_cache.has_value()) _err_cache = std::nullopt;
@@ -77,13 +77,13 @@ namespace moderna::test_lib {
     /*
       Reads the result specified at the index id.
     */
-    template <size_t id> const TestResult &get() const {
+    template <size_t id> const test_result &get() const {
       return _container[id];
     }
     /*
       Reads the result dynamically specified at the index id.
     */
-    const TestResult &get(size_t id) const {
+    const test_result &get(size_t id) const {
       return _container[id];
     }
     /*
@@ -99,7 +99,7 @@ namespace moderna::test_lib {
       return _container.end();
     }
     /*
-      Returns the number of errors incurred in the ResultList. This will cache the result if needed
+      Returns the number of errors incurred in the result_list. This will cache the result if needed
     */
     size_t err_count() const {
       if (!_err_cache.has_value()) {
@@ -107,13 +107,13 @@ namespace moderna::test_lib {
           _container.begin(),
           _container.end(),
           static_cast<size_t>(0),
-          [](size_t prev, const TestResult &e) { return e.is_error() ? prev + 1 : prev; }
+          [](size_t prev, const test_result &e) { return e.is_error() ? prev + 1 : prev; }
         );
       }
       return _err_cache.value();
     }
     /*
-      Returns the numbers of successes in the ResultList. This will cache the result if needed
+      Returns the numbers of successes in the result_list. This will cache the result if needed
     */
     size_t ok_count() const {
       if (!_ok_cache.has_value()) {
@@ -121,7 +121,7 @@ namespace moderna::test_lib {
           _container.begin(),
           _container.end(),
           static_cast<size_t>(0),
-          [](size_t prev, const TestResult &e) { return e.is_ok() ? prev + 1 : prev; }
+          [](size_t prev, const test_result &e) { return e.is_ok() ? prev + 1 : prev; }
         );
       }
       return _ok_cache.value();
@@ -140,12 +140,12 @@ namespace moderna::test_lib {
 /*
   Specialization for text formatting.
 */
-template <> struct std::formatter<moderna::test_lib::TestResult> : public std::formatter<std::string_view> {
+template <> struct std::formatter<moderna::test_lib::test_result> : public std::formatter<std::string_view> {
   constexpr auto parse(std::format_parse_context &ctx) const {
     return ctx.begin();
   }
   template<class FormatContext>
-  auto format(const moderna::test_lib::TestResult &obj, FormatContext &ctx)
+  auto format(const moderna::test_lib::test_result &obj, FormatContext &ctx)
     const {
     if (obj.is_ok()) return std::format_to(ctx.out(), "status\t: OK\n\n");
     else {

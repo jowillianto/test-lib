@@ -83,7 +83,7 @@ public:
 
 int main(int argc, char **argv) {
   auto fuzz_count = test_lib::random_integer(static_cast<int>(1e3), static_cast<int>(5e3));
-  auto tester = test_lib::Tester<>{"LinkedList Normal Test"}
+  auto tester = test_lib::make_tester("LinkedList Normal Test")
                   .add_test(
                     "fuzz_test",
                     [fuzz_count]() {

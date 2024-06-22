@@ -49,7 +49,7 @@ public:
 
 int main() {
   Cache<std::string, uint32_t> cache;
-  auto tester = test_lib::Tester<>{"Multithread Cache Test"}.add_test(
+  auto tester = test_lib::make_tester("Multithread Cache Test").add_test(
     "simultaneous access from two threads",
     [&]() {
       std::thread([&]() {

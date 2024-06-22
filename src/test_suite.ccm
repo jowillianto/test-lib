@@ -2,12 +2,10 @@ module;
 #include <atomic>
 #include <concepts>
 #include <format>
-#include <functional>
 #include <future>
 #include <iostream>
-#include <optional>
-#include <string>
 #include <mutex>
+#include <string>
 #include <string_view>
 #include <tuple>
 export module moderna.test_lib:test_suite;
@@ -16,35 +14,28 @@ import :test_config;
 import :exception;
 
 namespace moderna::test_lib {
-  export struct TesterConfig {
+  export template <std::invocable<size_t> progress_hook_f> struct tester_config {
     std::string_view suite_name;
     bool is_parallel;
     bool print_progress;
-    std::optional<std::function<void(size_t)>> progress_hook;
+    progress_hook_f progress_hook;
+
+    constexpr tester_config(
+      std::string_view name,
+      bool parallel = true,
+      bool print_progress = true,
+      progress_hook_f f = [](size_t _) {}
+    ) : suite_name{name}, is_parallel{parallel}, print_progress{print_progress}, progress_hook{f} {}
   };
-  export template <std::invocable... Fs> struct Tester {
-    using container_t = std::tuple<TestConfig<Fs>...>;
+  export template <std::invocable<size_t> progress_hook_f, std::invocable... Fs> struct tester {
+    using container_t = std::tuple<test_config<Fs>...>;
 
   public:
     /*
-      Creates a tester object with the given config. The configuration is immutable.
-    */
-    Tester(TesterConfig config) : _config(std::move(config)) {}
-    /*
-      Creates a tester object with a name
-    */
-    Tester(std::string_view suite_name) :
-      _config{
-        .suite_name = std::move(suite_name),
-        .is_parallel = true,
-        .print_progress = true,
-        .progress_hook = std::nullopt
-      } {}
-    /*
       This constructor is for internal use.
     */
-    Tester(TesterConfig config, container_t tests) :
-      _tests(std::move(tests)), _config(std::move(config)){}
+    constexpr tester(tester_config<progress_hook_f> config, container_t tests) :
+      _tests(tests), _config(config) {}
     /*
       The amount of test contained in this tester
     */
@@ -54,48 +45,45 @@ namespace moderna::test_lib {
     /*
       If the computation is parallel
     */
-    bool is_parallel() const {
+    constexpr bool is_parallel() const {
       return _config.is_parallel;
     }
     /*
       The name of the suite.
     */
-    std::string_view suite_name() const {
+    constexpr std::string_view suite_name() const {
       return _config.suite_name;
     }
     /*
       Adds a test
     */
     template <std::invocable F>
-    Tester<F, Fs...> add_test(std::string_view test_name, F test_func) const {
-      auto test_config = TestConfig(std::move(test_name), std::move(test_func));
-      return Tester<F, Fs...>{
-        std::move(_config),
-        std::tuple_cat(std::make_tuple(std::move(test_config)), std::move(_tests))
+    constexpr tester<progress_hook_f, F, Fs...> add_test(std::string_view test_name, F test_func)
+      const {
+      return tester<progress_hook_f, F, Fs...>{
+        _config,
+        std::tuple_cat(std::make_tuple(test_config{test_name, test_func}), _tests)
       };
     }
     /*
       Run all the tests with the given configuration
     */
-    const ResultList<test_count()> &run_all() const noexcept {
-      if (!_result_cache.has_value()) {
-        ResultList<test_count()> results;
-        std::array<std::future<void>, test_count()> futures;
-        std::atomic<size_t> progress;
-        std::mutex print_lock;
-        _run_tests<test_count(), 0>(results, futures, progress, print_lock);
-        for (auto &future : futures) {
-          future.get();
-        }
-        _result_cache = results;
+    result_list<test_count()> run_all() const noexcept {
+      result_list<test_count()> results;
+      std::array<std::future<void>, test_count()> futures;
+      std::atomic<size_t> progress;
+      std::mutex print_lock;
+      _run_tests<test_count(), 0>(results, futures, progress, print_lock);
+      for (auto &future : futures) {
+        future.get();
       }
-      return _result_cache.value();
+      return results;
     }
     /*
       Prints the test results.
     */
     void print_or_exit(bool exit_on_error = true) const {
-      const ResultList<test_count()> &results = run_all();
+      const result_list<test_count()> &results = run_all();
       std::cout << "================== Test Result =====================\n";
       std::cout << "Test Suite : " << suite_name() << std::endl;
       std::cout << "Run type : " << (is_parallel() ? "parallel" : "one-by-one") << std::endl;
@@ -104,46 +92,70 @@ namespace moderna::test_lib {
       std::cout << "Number of OKs : " << results.ok_count() << std::endl;
       std::cout << "================== Test Report =====================\n";
       size_t i = 1;
-      for (const TestResult &result : results) {
+      for (const test_result &result : results) {
         std::cout << std::format("{}. {}::{}\n{}\n", i, suite_name(), result.test_name(), result)
                   << std::endl;
         i += 1;
       }
       if (results.err_count() != 0 && exit_on_error) {
-        throw FailAssertion("There are erroneous test");
+        throw fail_assertion("There are erroneous test");
       }
     }
 
   private:
     container_t _tests;
-    TesterConfig _config;
-    mutable std::optional<ResultList<test_count()>> _result_cache;
-
+    tester_config<progress_hook_f> _config;
     /*
       Recursively runs the test, alternates between lazily evaluated future and threaded future.
     */
     template <size_t t = test_count(), size_t cur = 0>
     void _run_tests(
-      ResultList<t> &results,
+      result_list<t> &results,
       std::array<std::future<void>, test_count()> &futures,
       std::atomic<size_t> &progress,
-      std::mutex& print_lock
+      std::mutex &print_lock
     ) const {
       futures[cur] = std::async(
         _config.is_parallel ? std::launch::async : std::launch::deferred,
         [this, &results, &progress, &print_lock]() mutable {
-          results.template write_result<cur>(std::get<cur>(_tests)());
+          auto &test_config = std::get<cur>(_tests);
+          if (_config.print_progress) {
+            std::unique_lock l{print_lock};
+            std::cout << std::format("Running : {}", test_config.test_name()) << std::endl;
+          }
+          results.template write_result<cur>(test_config());
           size_t prev_progress = progress.fetch_add(1, std::memory_order::relaxed);
-          if (_config.print_progress){
-            std::unique_lock l {print_lock};
-            std::cout << std::format("Progress : {} / {}", prev_progress + 1, test_count())
+          if (_config.print_progress) {
+            std::unique_lock l{print_lock};
+            std::cout << std::format(
+                           "Progress : {} / {} [ Ran : {}]",
+                           prev_progress + 1,
+                           test_count(),
+                           test_config.test_name()
+                         )
                       << std::endl;
           }
-          if (_config.progress_hook.has_value()) _config.progress_hook.value()(prev_progress + 1);
+          _config.progress_hook(prev_progress + 1);
         }
       );
       if constexpr (cur + 1 < test_count())
         _run_tests<test_count(), cur + 1>(results, futures, progress, print_lock);
     }
   };
+
+  export template <std::invocable<size_t> progress_hook_f>
+  constexpr tester<progress_hook_f> make_tester(
+    std::string_view name,
+    bool parallel = true,
+    bool print_progress = true,
+    progress_hook_f f = [](size_t _) {}
+  ) {
+    return tester<progress_hook_f>{tester_config{name, parallel, print_progress, f}, {}};
+  }
+  export constexpr auto make_tester(
+    std::string_view name, bool parallel = true, bool print_progress = true
+  ) {
+    auto lambda = [](size_t _) {};
+    return tester<decltype(lambda)>{tester_config{name, parallel, print_progress, lambda}, {}};
+  }
 }

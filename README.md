@@ -4,46 +4,44 @@ A Simple and Light C++23 modules based C++ testing library.
 ## Example Usage
 ```cpp
 import moderna.test_lib;
-auto tester = moderna::test_lib::Tester<>{ "Many entry test" }
+auto tester = moderna::test_lib::make_tester("Many entry test")
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
 
-// Run and print
-test_lib::run_all_and_print(tester);
+tester.print_or_exit();
 ```
 
 ## API Documentation
 ### Creating a Test
 ```cpp
 import moderna.test_lib;
-auto tester = moderna::test_lib::Tester<>{ 
+auto tester = moderna::test_lib::make_tester{ 
   "Many entry test", // Name of the test Suite,
   true, // Should runs be done in parallel, 
   false // Should run progress be printed;
 }
 
-auto tester_with_progress_hook = moderna::test_lib::Tester<>{
+auto tester_with_progress_hook = moderna::test_lib::make_tester(
   "Many entry test", // Entry test
   [](size_t progress){}, // Get the progress in a callback functino
   true, // Should runs be done in parallel
   false // Should run progress be printed
-}
+)
 ```
 
 ### Getting the Run Results
 ```cpp
 import moderna.test_lib;
-auto tester = moderna::test_lib::Tester<>{ "Many entry test" }
+auto tester = moderna::test_lib::make_tester("Many entry test")
   .add_test("Some Name over here", [](){})
   .add_test("Another Name", [](){});
 
 /*
   Runs all the tests. 
 */
-const moderna::test_lib::ResultList<tester.test_count()>& results = tester.run_all();
+moderna::test_lib::result_list<tester.test_count()> results = tester.run_all();
 size_t ok_count = results.ok_count();
 size_t err_count = results.err_count();
-std::array<TestResult, tester.test_count()> result_array& = tester.array;
 /*
   Prints all the test result and exit with the correct exit code if not all the tests exits 
   successfully

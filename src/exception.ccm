@@ -7,11 +7,11 @@ module;
 export module moderna.test_lib:exception;
 
 namespace moderna::test_lib {
-  class TestDoesNotExist : public std::exception {
+  class test_does_not_exist : public std::exception {
     std::string _message;
 
   public:
-    TestDoesNotExist(const std::string &test_name) {
+    test_does_not_exist(const std::string &test_name) {
       _message = std::format("{} does not exist", test_name);
     }
     const char *what() const noexcept {
@@ -19,11 +19,11 @@ namespace moderna::test_lib {
     }
   };
 
-  class FailAssertion : public std::exception {
+  class fail_assertion : public std::exception {
     std::string _message;
 
   public:
-    FailAssertion(std::string &&message) : _message(message) {}
+    fail_assertion(std::string &&message) : _message(message) {}
     const char *what() const noexcept {
       return _message.c_str();
     }

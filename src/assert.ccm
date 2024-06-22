@@ -10,40 +10,40 @@ import :exception;
 
 namespace moderna::test_lib {
   template <typename T, typename V>
-  concept EqualComp = requires(const T &x, const V &v) {
+  concept equal_comp = requires(const T &x, const V &v) {
     { x == v } -> std::convertible_to<bool>;
   };
   template <typename T, typename V>
-  concept LtComp = requires(const T &x, const V &v) {
+  concept lt_comp = requires(const T &x, const V &v) {
     { x < v } -> std::convertible_to<bool>;
   };
 
   /*
-    Checks the equality of two values x and y. Throw a FailAssertion exception when the assertion
+    Checks the equality of two values x and y. Throw a fail_assertion exception when the assertion
     fails. When used in the scope of a tester, exception will be caught and will invalidate the
     test.
   */
-  export template <typename T, EqualComp<T> V>
+  export template <typename T, equal_comp<T> V>
   void assert_equal(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (x != y)
-      throw FailAssertion(std::format(
+      throw fail_assertion(std::format(
         "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
       ));
   }
 
   /*
-    Checks if x is less than y. Throw a FailAssertion exception when the assertion
+    Checks if x is less than y. Throw a fail_assertion exception when the assertion
     fails. When used in the scope of a tester, exception will be caught and will invalidate the
     test.
   */
-  export template <typename T, LtComp<T> V>
+  export template <typename T, equal_comp<T> V>
   void assert_lt(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (x >= y)
-      throw FailAssertion(std::format(
+      throw fail_assertion(std::format(
         "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
       ));
   }
@@ -52,7 +52,7 @@ namespace moderna::test_lib {
     Cheks the equality of two containers supporting the ranges paradigm.
   */
   export template <std::ranges::forward_range T, std::ranges::forward_range V>
-    requires(EqualComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !EqualComp<T, V>)
+    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
   void assert_equal(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
@@ -65,8 +65,8 @@ namespace moderna::test_lib {
       try{
         assert_equal (*beg_x, *beg_y);
       }
-      catch (const FailAssertion& e) {
-        throw FailAssertion(std::format("{} at index {}", e.msg(), idx));
+      catch (const fail_assertion& e) {
+        throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
       }
       beg_y += 1;
       beg_x += 1;
@@ -75,7 +75,7 @@ namespace moderna::test_lib {
   }
 
   export template <std::ranges::forward_range T, std::ranges::forward_range V>
-    requires(LtComp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !LtComp<T, V>)
+    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
   void assert_lt(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
@@ -88,8 +88,8 @@ namespace moderna::test_lib {
       try{
         assert_lt (*beg_x, *beg_y);
       }
-      catch (const FailAssertion& e) {
-        throw FailAssertion(std::format("{} at index {}", e.msg(), idx));
+      catch (const fail_assertion& e) {
+        throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
       }
       beg_y += 1;
       beg_x += 1;

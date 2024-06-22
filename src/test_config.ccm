@@ -7,25 +7,25 @@ import :test_result;
 import :exception;
 
 namespace moderna::test_lib {
-  template <std::invocable F> struct TestConfig {
+  template <std::invocable F> struct test_config {
   public:
     /*
       Initializes and creates a test config with a specific name
     */
-    TestConfig(std::string_view test_name, F test_func) :
+    test_config(std::string_view test_name, F test_func) :
       _invocable{std::move(test_func)}, _test_name{std::move(test_name)} {}
     /*
       This will run the test config with a specific name. Guaranteed that this function
       will never throw.
     */
-    TestResult operator()() const noexcept {
+    test_result operator()() const noexcept {
       try {
         _invocable();
-        return TestResult{test_name()};
-      } catch (const FailAssertion &e) {
-        return TestResult{test_name(), std::format("FailAssertion({})", e.msg())};
+        return test_result{test_name()};
+      } catch (const fail_assertion &e) {
+        return test_result{test_name(), std::format("fail_assertion({})", e.msg())};
       } catch (const std::exception &e) {
-        return TestResult{test_name(), std::format("{}({})", typeid(e).name(), e.what())};
+        return test_result{test_name(), std::format("{}({})", typeid(e).name(), e.what())};
       }
     }
     /*
