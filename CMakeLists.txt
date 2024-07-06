@@ -7,7 +7,7 @@ set (CMAKE_CXX_COMPILE_FEATURES "-Wall -Werror")
 
 include (CTest)
 
-if (NOT ${PROJECT_NAME})
+if (NOT TARGET ${PROJECT_NAME})
   add_library(${PROJECT_NAME})
   file (
     GLOB ${PROJECT_NAME}_src
