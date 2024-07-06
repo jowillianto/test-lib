@@ -7,15 +7,17 @@ set (CMAKE_CXX_COMPILE_FEATURES "-Wall -Werror")
 
 include (CTest)
 
-add_library(moderna_test_lib)
-file (
-  GLOB moderna_test_lib_src
-  "${CMAKE_CURRENT_LIST_DIR}/src/*.ccm"
-)
-target_sources(moderna_test_lib
-  PUBLIC
-    FILE_SET CXX_MODULES FILES ${moderna_test_lib_src}
-)
+if (NOT ${PROJECT_NAME})
+  add_library(${PROJECT_NAME})
+  file (
+    GLOB ${PROJECT_NAME}_src
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.ccm"
+  )
+  target_sources(${PROJECT_NAME}
+    PUBLIC
+      FILE_SET CXX_MODULES FILES ${${PROJECT_NAME}_src}
+  )
+endif()
 
 # Function to add a test into the suite. 
 function(moderna_add_test target_name target_files)
@@ -109,21 +111,21 @@ endfunction()
 
 if (PROJECT_IS_TOP_LEVEL)
   moderna_add_test(
-    moderna_test_lib_linked_list 
+    ${PROJECT_NAME}_linked_list 
     ${CMAKE_CURRENT_LIST_DIR}/test/linked_list.cpp
-    LIBRARIES moderna_test_lib
+    LIBRARIES ${PROJECT_NAME}
     SANITIZERS all
   )
   moderna_add_test(
-    moderna_test_lib_multithread_cache  
+    ${PROJECT_NAME}_multithread_cache  
     ${CMAKE_CURRENT_LIST_DIR}/test/multithread_cache.cpp
-    LIBRARIES moderna_test_lib
+    LIBRARIES ${PROJECT_NAME}
     SANITIZERS all
   )
   moderna_add_test(
-    moderna_test_lib_many_file 
+    ${PROJECT_NAME}_many_file 
     ${CMAKE_CURRENT_LIST_DIR}/test/many_file.cpp
-    LIBRARIES moderna_test_lib
+    LIBRARIES ${PROJECT_NAME}
     SANITIZERS all
   )
 elseif (PROJECT_IS_TOP_LEVEL)
