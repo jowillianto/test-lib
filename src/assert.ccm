@@ -27,10 +27,18 @@ namespace moderna::test_lib {
   void assert_equal(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (x != y)
-      throw fail_assertion(std::format(
-        "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
-      ));
+    if (x != y) {
+      if constexpr (std::formattable<T, char> && std::formattable<V, char>){
+        throw fail_assertion(std::format(
+          "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
+        ));
+      }
+      else{
+        throw fail_assertion(
+          std::format("Assertion error at line {} file {}", location.line(), location.file_name())
+        );
+      }
+    }
   }
 
   /*
@@ -43,9 +51,16 @@ namespace moderna::test_lib {
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (x >= y)
-      throw fail_assertion(std::format(
-        "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
-      ));
+      if constexpr (std::formattable<T, char> && std::formattable<V, char>){
+        throw fail_assertion(std::format(
+          "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
+        ));
+      }
+      else {
+        throw fail_assertion(
+          std::format("Assertion error at line {} file {}", location.line(), location.file_name())
+        );
+      }
   }
 
   /*
@@ -62,10 +77,9 @@ namespace moderna::test_lib {
     auto end_y = std::ranges::end(y);
     size_t idx = 0;
     while (beg_x != end_x && beg_y != end_y) {
-      try{
-        assert_equal (*beg_x, *beg_y);
-      }
-      catch (const fail_assertion& e) {
+      try {
+        assert_equal(*beg_x, *beg_y);
+      } catch (const fail_assertion &e) {
         throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
       }
       beg_y += 1;
@@ -85,10 +99,9 @@ namespace moderna::test_lib {
     auto end_y = std::ranges::end(y);
     size_t idx = 0;
     while (beg_x != end_x && beg_y != end_y) {
-      try{
-        assert_lt (*beg_x, *beg_y);
-      }
-      catch (const fail_assertion& e) {
+      try {
+        assert_lt(*beg_x, *beg_y);
+      } catch (const fail_assertion &e) {
         throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
       }
       beg_y += 1;
