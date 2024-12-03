@@ -28,12 +28,11 @@ namespace moderna::test_lib {
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
     if (x != y) {
-      if constexpr (std::formattable<T, char> && std::formattable<V, char>){
+      if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
         throw fail_assertion(std::format(
           "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
         ));
-      }
-      else{
+      } else {
         throw fail_assertion(
           std::format("Assertion error at line {} file {}", location.line(), location.file_name())
         );
@@ -50,17 +49,17 @@ namespace moderna::test_lib {
   void assert_lt(
     const T &x, const V &y, std::source_location location = std::source_location::current()
   ) {
-    if (x >= y)
-      if constexpr (std::formattable<T, char> && std::formattable<V, char>){
+    if (x >= y) {
+      if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
         throw fail_assertion(std::format(
           "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
         ));
-      }
-      else {
+      } else {
         throw fail_assertion(
           std::format("Assertion error at line {} file {}", location.line(), location.file_name())
         );
       }
+    }
   }
 
   /*
