@@ -58,11 +58,11 @@ namespace moderna::test_lib {
       Adds a test
     */
     template <std::invocable F>
-    constexpr tester<progress_hook_f, F, Fs...> add_test(std::string_view test_name, F test_func)
+    constexpr tester<progress_hook_f, Fs..., F> add_test(std::string_view test_name, F test_func)
       const {
-      return tester<progress_hook_f, F, Fs...>{
+      return tester<progress_hook_f, Fs..., F>{
         _config,
-        std::tuple_cat(std::make_tuple(test_config{test_name, test_func}), _tests)
+        std::tuple_cat(_tests, std::make_tuple(test_config{test_name, test_func}))
       };
     }
     /*
