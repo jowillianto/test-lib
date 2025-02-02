@@ -11,7 +11,7 @@ if (NOT TARGET ${PROJECT_NAME})
   add_library(${PROJECT_NAME})
   file (
     GLOB ${PROJECT_NAME}_src
-    "${CMAKE_CURRENT_LIST_DIR}/src/*.ccm"
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.cc"
   )
   target_sources(${PROJECT_NAME}
     PUBLIC
@@ -19,6 +19,7 @@ if (NOT TARGET ${PROJECT_NAME})
   )
 endif()
 
+set(${PROJECT_NAME}_LIB_NAME ${PROJECT_NAME})
 # Function to add a test into the suite. 
 function(moderna_add_test target_name target_files)
   set(options)
@@ -35,7 +36,12 @@ function(moderna_add_test target_name target_files)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   # This adds the non sanitized test
   include(CTest)
-  add_executable(${target_name} ${target_files})
+  add_executable(${target_name})
+  target_sources(${target_name}
+    PUBLIC 
+      ${target_files} 
+      # ${${PROJECT_NAME}_TEST_MAIN}
+  )
 
   function (add_sanitizer target_name sanitizer abbr)
     add_executable(${target_name}_${abbr} ${target_files})
@@ -67,7 +73,9 @@ function(moderna_add_test target_name target_files)
 
   # Normal Addition
   if (ARG_LIBRARIES)
-    target_link_libraries(${target_name} PRIVATE ${ARG_LIBRARIES})
+    target_link_libraries(${target_name} PRIVATE ${ARG_LIBRARIES} ${${PROJECT_NAME}_LIB_NAME})
+  else()
+    target_link_libraries(${target_name} PRIVATE ${${PROJECT_NAME}_LIB_NAME})
   endif()
   if (ARG_COMPILE_DEFINITIONS)
     target_compile_definitions(${target_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
@@ -109,25 +117,4 @@ function(moderna_add_test target_name target_files)
   endif()
 endfunction()
 
-if (PROJECT_IS_TOP_LEVEL)
-  moderna_add_test(
-    ${PROJECT_NAME}_linked_list 
-    ${CMAKE_CURRENT_LIST_DIR}/test/linked_list.cpp
-    LIBRARIES ${PROJECT_NAME}
-    SANITIZERS all
-  )
-  moderna_add_test(
-    ${PROJECT_NAME}_multithread_cache  
-    ${CMAKE_CURRENT_LIST_DIR}/test/multithread_cache.cpp
-    LIBRARIES ${PROJECT_NAME}
-    SANITIZERS all
-  )
-  moderna_add_test(
-    ${PROJECT_NAME}_many_file 
-    ${CMAKE_CURRENT_LIST_DIR}/test/many_file.cpp
-    LIBRARIES ${PROJECT_NAME}
-    SANITIZERS all
-  )
-elseif (PROJECT_IS_TOP_LEVEL)
-  message ("To run tests clone https://github.com/jowillianto/moderna")
-endif()
+moderna_add_test(${PROJECT_NAME}_test "${CMAKE_CURRENT_LIST_DIR}/tests.cc")

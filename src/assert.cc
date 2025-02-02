@@ -108,4 +108,16 @@ namespace moderna::test_lib {
       idx += 1;
     }
   }
+
+  export void assert_true(
+    bool expr,
+    std::string_view err_msg,
+    std::source_location location = std::source_location::current()
+  ) {
+    if (!expr) {
+      throw fail_assertion(
+        std::format("At {} Line {} , {}", location.file_name(), location.line(), err_msg)
+      );
+    }
+  }
 }
