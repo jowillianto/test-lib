@@ -51,7 +51,7 @@ namespace moderna::test_lib {
   };
 
   export std::vector<test_result> run_tests(
-    const test_suite &suite = get_global_test(), size_t thread_count = 1
+    size_t thread_count = 1, const test_suite &suite = get_global_test()
   ) {
     if (thread_count == 1) {
       auto runner = sequential_runner{};
@@ -77,9 +77,9 @@ namespace moderna::test_lib {
     }
   }
   export int run_all_and_exit(
-    const test_suite &suite = get_global_test(), size_t thread_count = 1
+    size_t thread_count = 1, const test_suite &suite = get_global_test()
   ) {
-    auto results = run_tests(suite, thread_count);
+    auto results = run_tests(thread_count, suite);
     print_test_result(results, suite);
     auto err_count =
       std::ranges::count_if(results, [](const test_result &res) { return res.is_error(); });

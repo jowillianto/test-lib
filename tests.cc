@@ -32,5 +32,5 @@ int main() {
     .add_test(create_with_custom_name{}, "custom_name")
     .add_test(run_throw_runtime_error{})
     .done();
-  test_lib::run_all_and_exit();
+  return test_lib::run_all_and_exit();
 }
