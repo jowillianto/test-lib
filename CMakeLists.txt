@@ -44,7 +44,6 @@ function(moderna_add_test target_name)
   include(CTest)
   list(APPEND ARG_TARGETS ${MODERNA_TEST_LIB_MAIN})
   list(APPEND ARG_TARGETS ${ARG_UNPARSED_ARGUMENTS})
-  message("${ARG_TARGETS}")
   add_executable(${target_name} ${ARG_TARGETS})
 
   function (add_sanitizer target_name sanitizer abbr)
