@@ -6,6 +6,7 @@ A Simple and Light C++23 modules based C++ testing library.
 import moderna.test_lib;
 
 namespace test_lib = moderna::test_lib;
+#include <moderna/test_lib/macros.hpp>
 
 MODERNA_ADD_TEST(some_name) {
   /*
