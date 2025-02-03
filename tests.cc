@@ -1,5 +1,5 @@
 import moderna.test_lib;
-#include <moderna/test_lib/macros.hpp>
+#include <moderna/test_lib.hpp>
 #include <stdexcept>
 
 namespace test_lib = moderna::test_lib;
