@@ -16,11 +16,13 @@ namespace moderna::test_lib {
 
     std::vector<test_result> run_test_suite(const test_suite &suite) const {
       std::atomic<size_t> cur_id;
+      std::atomic<bool> is_init{false};
       std::vector<std::thread> thread_pool;
       std::vector<test_result> results{suite.size()};
       thread_pool.reserve(__pool_size);
       for (size_t i = 0; i < __pool_size; i += 1) {
         thread_pool.emplace_back(std::thread{[&]() {
+          is_init.wait(false, std::memory_order_acquire);
           size_t test_id = cur_id.fetch_add(1, std::memory_order_relaxed);
           while (test_id < suite.size()) {
             auto test_entry = suite.get(test_id).value();
@@ -30,6 +32,8 @@ namespace moderna::test_lib {
           }
         }});
       }
+      is_init.store(true, std::memory_order_release);
+      is_init.notify_all();
       for (size_t i = 0; i < __pool_size; i += 1) {
         thread_pool[i].join();
       }
@@ -51,16 +55,46 @@ namespace moderna::test_lib {
     }
   };
 
-  export std::vector<test_result> run_tests(
-    size_t thread_count = 1, const test_suite &suite = get_global_test()
-  ) {
-    if (thread_count == 1) {
-      auto runner = sequential_runner{};
-      return runner.run_test_suite(suite);
-    } else {
-      auto runner = multithreaded_runner{thread_count};
-      return runner.run_test_suite(suite);
+  struct test_runner {
+    std::optional<size_t> thread_count;
+    test_runner &set_thread_count(size_t count) {
+      thread_count = count;
+      return *this;
     }
+    test_runner &unset_thread_count() {
+      thread_count = std::nullopt;
+      return *this;
+    }
+    std::optional<size_t> get_thread_count() const {
+      return thread_count;
+    }
+    std::vector<test_result> run_test_suite(const test_suite &suite) const {
+      size_t t_count = thread_count.value_or(1);
+      if (t_count == 1) {
+        auto runner = sequential_runner{};
+        return runner.run_test_suite(suite);
+      } else {
+        auto runner = multithreaded_runner{t_count};
+        return runner.run_test_suite(suite);
+      }
+    }
+  };
+  test_runner global_test_runner{std::nullopt};
+  export void set_thread_count(size_t count) {
+    global_test_runner.set_thread_count(count);
+  }
+  export void unset_thread_count() {
+    global_test_runner.unset_thread_count();
+  }
+  export std::optional<size_t> get_thread_count() {
+    return global_test_runner.get_thread_count();
+  }
+  export test_runner &get_global_runner() {
+    return global_test_runner;
+  }
+
+  export std::vector<test_result> run_tests(const test_suite &suite = get_global_test()) {
+    return get_global_runner().run_test_suite(suite);
   }
 
   export std::expected<std::pair<size_t, size_t>, fail_assertion> print_test_result(
@@ -95,7 +129,7 @@ namespace moderna::test_lib {
   export int run_all_and_exit(
     size_t thread_count = 10, const test_suite &suite = get_global_test()
   ) {
-    auto results = run_tests(thread_count, suite);
+    auto results = run_tests(suite);
     auto [ok_count, err_count] = print_test_result(results, suite).value();
     return err_count;
   }

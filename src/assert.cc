@@ -30,12 +30,16 @@ namespace moderna::test_lib {
     if (x != y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
         throw fail_assertion(std::format(
-          "At {} Line {} , {} is not equal to {}", location.file_name(), location.line(), x, y
+          "At {} Line {} , {} is not equal to {}",
+          std::string{location.file_name()},
+          location.line(),
+          x,
+          y
         ));
       } else {
-        throw fail_assertion(
-          std::format("Assertion error at line {} file {}", location.line(), location.file_name())
-        );
+        throw fail_assertion(std::format(
+          "Assertion error at line {} file {}", location.line(), std::string{location.file_name()}
+        ));
       }
     }
   }
@@ -52,12 +56,16 @@ namespace moderna::test_lib {
     if (x >= y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
         throw fail_assertion(std::format(
-          "At {} Line {} , {} is not less than {}", location.file_name(), location.line(), x, y
+          "At {} Line {} , {} is not less than {}",
+          std::string{location.file_name()},
+          location.line(),
+          x,
+          y
         ));
       } else {
-        throw fail_assertion(
-          std::format("Assertion error at line {} file {}", location.line(), location.file_name())
-        );
+        throw fail_assertion(std::format(
+          "Assertion error at line {} file {}", location.line(), std::string{location.file_name()}
+        ));
       }
     }
   }
@@ -115,9 +123,9 @@ namespace moderna::test_lib {
     std::source_location location = std::source_location::current()
   ) {
     if (!expr) {
-      throw fail_assertion(
-        std::format("At {} Line {} , {}", location.file_name(), location.line(), err_msg)
-      );
+      throw fail_assertion(std::format(
+        "At {} Line {} , {}", std::string{location.file_name()}, location.line(), err_msg
+      ));
     }
   }
 }

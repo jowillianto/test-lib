@@ -1,5 +1,6 @@
 import moderna.test_lib;
 #include <moderna/test_lib.hpp>
+#include <print>
 #include <stdexcept>
 
 namespace test_lib = moderna::test_lib;
@@ -20,4 +21,8 @@ MODERNA_ADD_TEST(run_throw_runtime_error) {
   test_lib::assert_equal(res.is_error(), true);
   test_lib::assert_equal(res.get_error().value().name, "std::runtime_error");
   test_lib::assert_equal(res.get_error().value().message, "LOL");
+}
+
+MODERNA_SETUP() {
+  test_lib::set_thread_count(1);
 }

@@ -9,3 +9,12 @@
   }; \
   static name##_initiator name##_var{}; \
   void name::operator()() const
+
+#define MODERNA_SETUP() \
+  namespace moderna::test_lib { \
+    struct moderna_setup { \
+      moderna_setup(); \
+    }; \
+  } \
+  moderna::test_lib::moderna_setup setuper; \
+  moderna::test_lib::moderna_setup::moderna_setup()
