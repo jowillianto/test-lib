@@ -3,7 +3,6 @@ module;
 #include <memory>
 #include <optional>
 #include <vector>
-
 export module moderna.test_lib:test_suite;
 import :test_config;
 import :reflection;

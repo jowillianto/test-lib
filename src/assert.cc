@@ -111,7 +111,7 @@ namespace moderna::test_lib {
 
   export void assert_true(
     bool expr,
-    std::string_view err_msg,
+    std::string_view err_msg = "expr is not true",
     std::source_location location = std::source_location::current()
   ) {
     if (!expr) {

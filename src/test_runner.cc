@@ -1,6 +1,7 @@
 module;
 #include <algorithm>
 #include <atomic>
+#include <expected>
 #include <optional>
 #include <print>
 #include <ranges>
@@ -62,27 +63,40 @@ namespace moderna::test_lib {
     }
   }
 
-  export void print_test_result(const std::vector<test_result> &vec, const test_suite &suite) {
+  export std::expected<std::pair<size_t, size_t>, fail_assertion> print_test_result(
+    const std::vector<test_result> &vec, const test_suite &suite
+  ) {
+    if (vec.size() != suite.size()) {
+      return std::unexpected{fail_assertion{"Test suite and test result vector size mismatch"}};
+    }
+    size_t i = 1;
+    size_t ok_count =
+      std::ranges::count_if(vec, [](const test_result &res) { return res.is_ok(); });
+    size_t err_count =
+      std::ranges::count_if(vec, [](const test_result &res) { return res.is_error(); });
+    std::println("Run {} tests", suite.size());
+    std::println("OK: {}, Err: {}", ok_count, err_count);
     for (const auto &[res, test] : std::ranges::zip_view{vec, suite}) {
       if (res.is_ok()) {
-        std::println("Test {} have been run successfully", test->name());
+        std::println("{}. Test {} OK\n", i, test->name());
       } else {
         std::println(
-          "Test {} have failed to run. Throwing {} with error message {}",
+          "{}. Test {} ERR.\n{}({})\n",
+          i,
           test->name(),
           res.get_error().value().name,
           res.get_error().value().message
         );
       }
+      i += 1;
     }
+    return std::pair{ok_count, err_count};
   }
   export int run_all_and_exit(
-    size_t thread_count = 1, const test_suite &suite = get_global_test()
+    size_t thread_count = 10, const test_suite &suite = get_global_test()
   ) {
     auto results = run_tests(thread_count, suite);
-    print_test_result(results, suite);
-    auto err_count =
-      std::ranges::count_if(results, [](const test_result &res) { return res.is_error(); });
+    auto [ok_count, err_count] = print_test_result(results, suite).value();
     return err_count;
   }
 }

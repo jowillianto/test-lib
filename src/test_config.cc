@@ -64,8 +64,10 @@ namespace moderna::test_lib {
       const exception_pack<exceptions...> &p = exception_pack<>{}
     ) : __f{f}, __name{test_name} {}
     test_result run_test() const override {
-      return test_result{exception_catcher<exceptions..., fail_assertion, std::exception>::make()
-                           .safely_run_invocable(__f)};
+      return test_result{
+        exception_catcher<exceptions..., fail_assertion, std::runtime_error, std::exception>::make()
+          .safely_run_invocable(__f)
+      };
     }
 
   private:

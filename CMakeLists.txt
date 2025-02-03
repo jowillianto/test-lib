@@ -17,14 +17,20 @@ if (NOT TARGET ${PROJECT_NAME})
     PUBLIC
       FILE_SET CXX_MODULES FILES ${${PROJECT_NAME}_src}
   )
+  target_include_directories(${PROJECT_NAME}
+    PUBLIC
+      "${CMAKE_CURRENT_LIST_DIR}/include"
+  )
 endif()
 
-set(${PROJECT_NAME}_LIB_NAME ${PROJECT_NAME})
+set(MODERNA_TEST_LIB_NAME ${PROJECT_NAME} CACHE INTERNAL "The name of the moderna testing library")
+set (MODERNA_TEST_LIB_MAIN "${CMAKE_CURRENT_LIST_DIR}/src/main.cpp" CACHE INTERNAL "The path to the moderna test library main function")
 # Function to add a test into the suite. 
-function(moderna_add_test target_name target_files)
+function(moderna_add_test target_name)
   set(options)
   set(oneValueArgs)
   set(multiValueArgs 
+    TARGETS
     LIBRARIES
     DIRECTORIES
     SANITIZERS
@@ -36,15 +42,13 @@ function(moderna_add_test target_name target_files)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   # This adds the non sanitized test
   include(CTest)
-  add_executable(${target_name})
-  target_sources(${target_name}
-    PUBLIC 
-      ${target_files} 
-      # ${${PROJECT_NAME}_TEST_MAIN}
-  )
+  list(APPEND ARG_TARGETS ${MODERNA_TEST_LIB_MAIN})
+  list(APPEND ARG_TARGETS ${ARG_UNPARSED_ARGUMENTS})
+  message("${ARG_TARGETS}")
+  add_executable(${target_name} ${ARG_TARGETS})
 
   function (add_sanitizer target_name sanitizer abbr)
-    add_executable(${target_name}_${abbr} ${target_files})
+    add_executable(${target_name}_${abbr} ${ARG_TARGETS})
     
     if(ARG_LIBRARIES)
       target_link_libraries(${target_name}_${abbr} PRIVATE ${ARG_LIBRARIES})
@@ -73,9 +77,9 @@ function(moderna_add_test target_name target_files)
 
   # Normal Addition
   if (ARG_LIBRARIES)
-    target_link_libraries(${target_name} PRIVATE ${ARG_LIBRARIES} ${${PROJECT_NAME}_LIB_NAME})
+    target_link_libraries(${target_name} PRIVATE ${ARG_LIBRARIES} ${MODERNA_TEST_LIB_NAME})
   else()
-    target_link_libraries(${target_name} PRIVATE ${${PROJECT_NAME}_LIB_NAME})
+    target_link_libraries(${target_name} PRIVATE ${MODERNA_TEST_LIB_NAME})
   endif()
   if (ARG_COMPILE_DEFINITIONS)
     target_compile_definitions(${target_name} PRIVATE ${ARG_COMPILE_DEFINITIONS})
