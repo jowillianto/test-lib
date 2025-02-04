@@ -120,4 +120,6 @@ function(moderna_add_test target_name)
   endif()
 endfunction()
 
+if (PROJECT_IS_TOP_LEVEL)
 moderna_add_test(${PROJECT_NAME}_test "${CMAKE_CURRENT_LIST_DIR}/tests.cc")
+endif()

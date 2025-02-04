@@ -4,7 +4,7 @@ module;
 #include <optional>
 #include <vector>
 export module moderna.test_lib:test_suite;
-import :test_config;
+import :test_entry;
 import :reflection;
 
 namespace moderna::test_lib {
@@ -20,7 +20,7 @@ namespace moderna::test_lib {
       std::string_view test_name = get_type_name<F>(),
       exception_pack<exceptions...> p = exception_pack<>{}
     ) {
-      __tests.emplace_back(make_test_config(std::forward<F>(f), test_name, p));
+      __tests.emplace_back(make_test_entry(std::forward<F>(f), test_name, p));
       return *this;
     }
 

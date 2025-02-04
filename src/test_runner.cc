@@ -1,14 +1,16 @@
 module;
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <expected>
 #include <optional>
 #include <print>
 #include <ranges>
 #include <thread>
+#include <vector>
 export module moderna.test_lib:test_runner;
 import :test_suite;
-import :test_config;
+import :test_entry;
 
 namespace moderna::test_lib {
   struct multithreaded_runner {
@@ -18,7 +20,7 @@ namespace moderna::test_lib {
       std::atomic<size_t> cur_id;
       std::atomic<bool> is_init{false};
       std::vector<std::thread> thread_pool;
-      std::vector<test_result> results{suite.size()};
+      std::vector<std::optional<test_result>> opt_results{suite.size(), std::nullopt};
       thread_pool.reserve(__pool_size);
       for (size_t i = 0; i < __pool_size; i += 1) {
         thread_pool.emplace_back(std::thread{[&]() {
@@ -27,7 +29,7 @@ namespace moderna::test_lib {
           while (test_id < suite.size()) {
             auto test_entry = suite.get(test_id).value();
             auto res = test_entry.get().run_test();
-            results[test_id] = res;
+            opt_results[test_id] = res;
             test_id = cur_id.fetch_add(1, std::memory_order_relaxed);
           }
         }});
@@ -37,6 +39,11 @@ namespace moderna::test_lib {
       for (size_t i = 0; i < __pool_size; i += 1) {
         thread_pool[i].join();
       }
+      std::vector<test_result> results;
+      results.reserve(suite.size());
+      std::ranges::transform(opt_results, std::back_inserter(results), [](const auto &opt) {
+        return opt.value();
+      });
       return results;
     }
 
@@ -112,7 +119,12 @@ namespace moderna::test_lib {
     std::println("OK: {}, Err: {}", ok_count, err_count);
     for (const auto &[res, test] : std::ranges::zip_view{vec, suite}) {
       if (res.is_ok()) {
-        std::println("{}. Test {} OK\n", i, test->name());
+        std::println(
+          "{}. Test {} ({} μs) OK\n",
+          i,
+          test->name(),
+          std::chrono::duration_cast<std::chrono::microseconds>(res.running_time()).count()
+        );
       } else {
         std::println(
           "{}. Test {} ERR.\n{}({})\n",

@@ -16,7 +16,7 @@ MODERNA_ADD_TEST(custom_name) {
 }
 
 MODERNA_ADD_TEST(run_throw_runtime_error) {
-  auto conf = test_lib::test_config{[]() { throw std::runtime_error("LOL"); }};
+  auto conf = test_lib::test_entry{[]() { throw std::runtime_error("LOL"); }};
   auto res = conf.run_test();
   test_lib::assert_equal(res.is_error(), true);
   test_lib::assert_equal(res.get_error().value().name, "std::runtime_error");

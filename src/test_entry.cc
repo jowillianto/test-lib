@@ -1,10 +1,11 @@
 module;
+#include <chrono>
 #include <concepts>
 #include <expected>
 #include <memory>
 #include <optional>
 #include <string_view>
-export module moderna.test_lib:test_config;
+export module moderna.test_lib:test_entry;
 import :exception;
 import :reflection;
 
@@ -14,13 +15,15 @@ namespace moderna::test_lib {
   */
   export struct test_result {
   public:
-    template <class T>
-    test_result(const std::expected<T, exception_info> &e) :
-      __err{
-        e.has_value() ? std::optional<exception_info>{} : std::optional<exception_info>{e.error()}
-      } {}
+    test_result(
+      std::chrono::system_clock::duration dur, std::optional<exception_info> err = std::nullopt
+    ) :
+      __runtime{dur},
+      __err{std::move(err)} {}
 
-    test_result() : __err{std::nullopt} {}
+    std::chrono::system_clock::duration running_time() const {
+      return __runtime;
+    }
 
     std::optional<exception_info> get_error() const {
       return __err;
@@ -34,7 +37,7 @@ namespace moderna::test_lib {
     }
 
   private:
-    std::string __name;
+    std::chrono::system_clock::duration __runtime;
     std::optional<exception_info> __err;
   };
 
@@ -53,21 +56,29 @@ namespace moderna::test_lib {
     including custom ones, that can be caught by the runner.
   */
   export template <std::invocable F, is_exception... exceptions>
-  struct test_config : public generic_test_entry {
+  struct test_entry : public generic_test_entry {
   public:
     std::string_view name() const override {
       return __name;
     }
-    constexpr test_config(
+    constexpr test_entry(
       F &&f,
       std::string_view test_name = get_type_name<F>(),
       const exception_pack<exceptions...> &p = exception_pack<>{}
-    ) : __f{f}, __name{test_name} {}
+    ) :
+      __f{f},
+      __name{test_name} {}
     test_result run_test() const override {
-      return test_result{
+      auto beg = std::chrono::system_clock::now();
+      auto res =
         exception_catcher<exceptions..., fail_assertion, std::runtime_error, std::exception>::make()
-          .safely_run_invocable(__f)
-      };
+          .safely_run_invocable(__f);
+      auto end = std::chrono::system_clock::now();
+      auto dur = end - beg;
+      return res.transform_error([&](auto &&e) {
+                  return test_result{dur, std::move(e)};
+                }
+      ).error_or(test_result{dur});
     }
 
   private:
@@ -76,18 +87,18 @@ namespace moderna::test_lib {
   };
 
   export template <std::invocable F, is_exception... exceptions>
-  constexpr std::unique_ptr<generic_test_entry> make_test_config(
+  constexpr std::unique_ptr<generic_test_entry> make_test_entry(
     F &&f,
     std::string_view test_name = get_type_name<F>(),
     const exception_pack<exceptions...> &p = exception_pack<>{}
   ) {
-    return std::make_unique<test_config<F, exceptions...>>(std::forward<F>(f), test_name, p);
+    return std::make_unique<test_entry<F, exceptions...>>(std::forward<F>(f), test_name, p);
   }
 
   export template <std::invocable F>
-  constexpr std::unique_ptr<generic_test_entry> make_test_config(
+  constexpr std::unique_ptr<generic_test_entry> make_test_entry(
     F &&f, std::string_view test_name = get_type_name<F>()
   ) {
-    return std::make_unique<test_config<F>>(std::forward<F>(f), test_name);
+    return std::make_unique<test_entry<F>>(std::forward<F>(f), test_name);
   }
 }
