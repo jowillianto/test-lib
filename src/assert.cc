@@ -44,6 +44,27 @@ namespace moderna::test_lib {
     }
   }
 
+  export template <typename T, equal_comp<T> V>
+  void assert_not_equal(
+    const T &x, const V &y, std::source_location location = std::source_location::current()
+  ) {
+    if (x == y) {
+      if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
+        throw fail_assertion(std::format(
+          "At {} Line {} , {} is not equal to {}",
+          std::string{location.file_name()},
+          location.line(),
+          x,
+          y
+        ));
+      } else {
+        throw fail_assertion(std::format(
+          "Assertion error at line {} file {}", location.line(), std::string{location.file_name()}
+        ));
+      }
+    }
+  }
+
   /*
     Checks if x is less than y. Throw a fail_assertion exception when the assertion
     fails. When used in the scope of a tester, exception will be caught and will invalidate the
@@ -126,6 +147,23 @@ namespace moderna::test_lib {
       throw fail_assertion(std::format(
         "At {} Line {} , {}", std::string{location.file_name()}, location.line(), err_msg
       ));
+    }
+  }
+  export void assert_false(
+    bool expr,
+    std::string_view err_msg = "expr is true",
+    std::source_location location = std::source_location::current()
+  ) {
+    if (expr) {
+      throw fail_assertion(std::format(
+        "At {} Line {} , {}", std::string{location.file_name()}, location.line(), err_msg
+      ));
+    }
+  }
+
+  export void assert_close(double x, double y, double tolerance = 1e-6) {
+    if (std::abs(x - y) > tolerance) {
+      throw fail_assertion(std::format("{} {} are not close within {}", x, y, tolerance));
     }
   }
 }
