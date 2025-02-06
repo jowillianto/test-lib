@@ -10,11 +10,16 @@
   static name##_initiator name##_var{}; \
   void name::operator()() const
 
-#define MODERNA_SETUP() \
-  namespace moderna::test_lib { \
-    struct moderna_setup { \
-      moderna_setup(); \
-    }; \
-  } \
-  moderna::test_lib::moderna_setup setuper; \
-  moderna::test_lib::moderna_setup::moderna_setup()
+#define MODERNA_SETUP(argc, argv) \
+  template <> struct moderna::test_lib::test_setup<moderna::test_lib::setup_mode::SET_UP> { \
+    static void set_up(int argc, const char **argv); \
+  }; \
+  void moderna::test_lib::test_setup<moderna::test_lib::setup_mode::SET_UP>::set_up( \
+    int argc, const char **argv \
+  )
+
+#define MODERNA_TEARDOWN() \
+  template <> struct moderna::test_lib::test_setup<moderna::test_lib::setup_mode::TEAR_DOWN> { \
+    static void tear_down(); \
+  }; \
+  void moderna::test_lib::test_setup<moderna::test_lib::setup_mode::TEAR_DOWN>::tear_down()

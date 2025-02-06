@@ -23,6 +23,13 @@ MODERNA_ADD_TEST(run_throw_runtime_error) {
   test_lib::assert_equal(res.get_error().value().message, "LOL");
 }
 
-MODERNA_SETUP() {
+MODERNA_SETUP(argc, argv) {
   test_lib::set_thread_count(1);
+}
+
+/*
+  It is here for proof of concept.
+*/
+MODERNA_TEARDOWN() {
+  test_lib::unset_thread_count();
 }
