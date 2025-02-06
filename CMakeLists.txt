@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED true)
 set (CMAKE_CXX_SCAN_FOR_MODULES true)
 set (CMAKE_CXX_COMPILE_FEATURES "-Wall -Werror")
-
+option (MODERNA_TEST_LIB_BUILD_TEST "Build tests" OFF)
 include (CTest)
 
 if (NOT TARGET ${PROJECT_NAME})
@@ -122,6 +122,6 @@ function(moderna_add_test target_name)
   endif()
 endfunction()
 
-if (PROJECT_IS_TOP_LEVEL)
+if (MODERNA_TEST_LIB_BUILD_TEST)
 moderna_add_test(${PROJECT_NAME}_test "${CMAKE_CURRENT_LIST_DIR}/tests.cc")
 endif()
