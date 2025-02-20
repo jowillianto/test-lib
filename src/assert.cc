@@ -1,11 +1,9 @@
-
 module;
-
+#include <expected>
 #include <format>
 #include <ranges>
 #include <source_location>
 #include <string_view>
-
 export module moderna.test_lib:assert;
 import :exception;
 
@@ -171,6 +169,16 @@ namespace moderna::test_lib {
   export void assert_close(double x, double y, double tolerance = 1e-6) {
     if (std::abs(x - y) > tolerance) {
       throw fail_assertion(std::format("{} {} are not close within {}", x, y, tolerance));
+    }
+  }
+
+  export template <typename T, typename E> void assert_expected(const std::expected<T, E> &e) {
+    if constexpr (requires() { e.error().what(); }) {
+      test_lib::assert_true(e.has_value(), e.error().what());
+    } else if constexpr (std::formattable<E, char>) {
+      test_lib::assert_true(e.has_value(), std::format("{}", e.error()));
+    } else {
+      test_lib::assert_true(e.has_value(), "Expected Value is not true");
     }
   }
 }
