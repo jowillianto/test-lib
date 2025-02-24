@@ -11,7 +11,7 @@ namespace moderna::test_lib {
     { e.what() } -> std::convertible_to<std::string>;
   };
 
-  class fail_assertion : public std::exception {
+  export class fail_assertion : public std::exception {
     std::string _message;
 
   public:

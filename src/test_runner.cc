@@ -11,6 +11,7 @@ module;
 export module moderna.test_lib:test_runner;
 import :test_suite;
 import :test_entry;
+import :exception;
 
 namespace moderna::test_lib {
   struct multithreaded_runner {

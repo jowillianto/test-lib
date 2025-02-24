@@ -8,10 +8,16 @@ export module moderna.test_lib:assert;
 import :exception;
 
 namespace moderna::test_lib {
+  /*
+    Checks if two values are equal comparable.
+  */
   template <typename T, typename V>
   concept equal_comp = requires(const T &x, const V &v) {
     { x == v } -> std::convertible_to<bool>;
   };
+  /*
+    Checks if two values are less then comparable.
+  */
   template <typename T, typename V>
   concept lt_comp = requires(const T &x, const V &v) {
     { x < v } -> std::convertible_to<bool>;
@@ -24,7 +30,7 @@ namespace moderna::test_lib {
   */
   export template <typename T, equal_comp<T> V>
   void assert_equal(
-    const T &x, const V &y, std::source_location location = std::source_location::current()
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
     if (x != y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
@@ -45,9 +51,12 @@ namespace moderna::test_lib {
     }
   }
 
+  /*
+    Assert that two values are not equal
+  */
   export template <typename T, equal_comp<T> V>
   void assert_not_equal(
-    const T &x, const V &y, std::source_location location = std::source_location::current()
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
     if (x == y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
@@ -75,7 +84,7 @@ namespace moderna::test_lib {
   */
   export template <typename T, equal_comp<T> V>
   void assert_lt(
-    const T &x, const V &y, std::source_location location = std::source_location::current()
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
     if (x >= y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
@@ -96,57 +105,90 @@ namespace moderna::test_lib {
     }
   }
 
+  export template <std::ranges::input_range T, std::ranges::input_range V, typename F>
+    requires(std::invocable<F, std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> || std::invocable<F, std::ranges::range_value_t<T>, std::ranges::range_value_t<V>, std::source_location>)
+  void assert_func(
+    const T &x,
+    const V &y,
+    F &&comp,
+    const std::source_location &location = std::source_location::current()
+  ) {
+    size_t idx = 0;
+    for (const auto &[v_x, v_y] : std::ranges::zip_view(x, y)) {
+      try {
+        if constexpr (std::invocable<
+                        F,
+                        std::ranges::range_value_t<T>,
+                        std::ranges::range_value_t<V>>) {
+          comp(v_x, v_y);
+        } else {
+          comp(v_x, v_y, location);
+        }
+      } catch (const fail_assertion &e) {
+        throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
+      }
+      idx += 1;
+    }
+  }
+
   /*
     Cheks the equality of two containers supporting the ranges paradigm.
   */
-  export template <std::ranges::forward_range T, std::ranges::forward_range V>
+  export template <std::ranges::input_range T, std::ranges::input_range V>
     requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
   void assert_equal(
-    const T &x, const V &y, std::source_location location = std::source_location::current()
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
-    auto beg_x = std::ranges::begin(x);
-    auto end_x = std::ranges::end(x);
-    auto beg_y = std::ranges::begin(y);
-    auto end_y = std::ranges::end(y);
-    size_t idx = 0;
-    while (beg_x != end_x && beg_y != end_y) {
-      try {
-        assert_equal(*beg_x, *beg_y);
-      } catch (const fail_assertion &e) {
-        throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
-      }
-      beg_y += 1;
-      beg_x += 1;
-      idx += 1;
-    }
+    assert_func(
+      x,
+      y,
+      [](const auto &x, const auto &y, const std::source_location &loc) {
+        assert_equal(x, y, loc);
+      },
+      location
+    );
   }
 
-  export template <std::ranges::forward_range T, std::ranges::forward_range V>
-    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
+  /*
+    Checks if two range containers are all less then the first one
+  */
+  export template <std::ranges::input_range T, std::ranges::input_range V>
+    requires(lt_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !lt_comp<T, V>)
   void assert_lt(
-    const T &x, const V &y, std::source_location location = std::source_location::current()
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
-    auto beg_x = std::ranges::begin(x);
-    auto end_x = std::ranges::end(x);
-    auto beg_y = std::ranges::begin(y);
-    auto end_y = std::ranges::end(y);
-    size_t idx = 0;
-    while (beg_x != end_x && beg_y != end_y) {
-      try {
-        assert_lt(*beg_x, *beg_y);
-      } catch (const fail_assertion &e) {
-        throw fail_assertion(std::format("{} at index {}", e.msg(), idx));
-      }
-      beg_y += 1;
-      beg_x += 1;
-      idx += 1;
-    }
+    assert_func(
+      x,
+      y,
+      [](const auto &x, const auto &y, const std::source_location &loc) { assert_lt(x, y, loc); },
+      location
+    );
+  }
+  /*
+    Assert non equality
+  */
+  export template <std::ranges::input_range T, std::ranges::input_range V>
+    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
+  void assert_not_equal(
+    const T &x, const V &y, const std::source_location &location = std::source_location::current()
+  ) {
+    assert_func(
+      x,
+      y,
+      [](const auto &x, const auto &y, const std::source_location &loc) {
+        assert_not_equal(x, y, loc);
+      },
+      location
+    );
   }
 
+  /*
+    Checks if a statement is true.
+  */
   export void assert_true(
     bool expr,
     std::string_view err_msg = "expr is not true",
-    std::source_location location = std::source_location::current()
+    const std::source_location &location = std::source_location::current()
   ) {
     if (!expr) {
       throw fail_assertion(std::format(
@@ -157,7 +199,7 @@ namespace moderna::test_lib {
   export void assert_false(
     bool expr,
     std::string_view err_msg = "expr is true",
-    std::source_location location = std::source_location::current()
+    const std::source_location &location = std::source_location::current()
   ) {
     if (expr) {
       throw fail_assertion(std::format(
@@ -179,6 +221,20 @@ namespace moderna::test_lib {
       test_lib::assert_true(e.has_value(), std::format("{}", e.error()));
     } else {
       test_lib::assert_true(e.has_value(), "Expected Value is not true");
+    }
+  }
+
+  export template <is_exception... exceptions> void assert_throw(std::invocable auto &&f) {
+    if constexpr (sizeof...(exceptions)) {
+      auto catcher = exception_catcher<exceptions...>::make();
+      auto res = catcher.safely_run_invocable(std::forward<std::decay_t<decltype(f)>>(f));
+      test_lib::assert_true(!res.has_value(), "No exception thrown");
+    } else {
+      try {
+        f();
+        test_lib::assert_true(false, "No exception thrown");
+      } catch (...) {
+      }
     }
   }
 }
