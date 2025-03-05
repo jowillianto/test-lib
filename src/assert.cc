@@ -214,25 +214,31 @@ namespace moderna::test_lib {
     }
   }
 
-  export template <typename T, typename E> void assert_expected(const std::expected<T, E> &e) {
+  export template <typename T, typename E>
+  void assert_expected(
+    const std::expected<T, E> &e, const std::source_location &loc = std::source_location::current()
+  ) {
     if constexpr (requires() { e.error().what(); }) {
-      test_lib::assert_true(e.has_value(), e.error().what());
+      test_lib::assert_true(e.has_value(), e.error().what(), loc);
     } else if constexpr (std::formattable<E, char>) {
-      test_lib::assert_true(e.has_value(), std::format("{}", e.error()));
+      test_lib::assert_true(e.has_value(), std::format("{}", e.error()), loc);
     } else {
-      test_lib::assert_true(e.has_value(), "Expected Value is not true");
+      test_lib::assert_true(e.has_value(), "Expected Value is not true", loc);
     }
   }
 
-  export template <is_exception... exceptions> void assert_throw(std::invocable auto &&f) {
+  export template <is_exception... exceptions>
+  void assert_throw(
+    std::invocable auto &&f, const std::source_location &loc = std::source_location::current()
+  ) {
     if constexpr (sizeof...(exceptions)) {
       auto catcher = exception_catcher<exceptions...>::make();
       auto res = catcher.safely_run_invocable(std::forward<std::decay_t<decltype(f)>>(f));
-      test_lib::assert_true(!res.has_value(), "No exception thrown");
+      test_lib::assert_true(!res.has_value(), "No exception thrown", loc);
     } else {
       try {
         f();
-        test_lib::assert_true(false, "No exception thrown");
+        test_lib::assert_true(false, "No exception thrown", loc);
       } catch (...) {
       }
     }
