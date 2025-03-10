@@ -31,3 +31,17 @@ This macro setups a function that will setup the test settings for a specific us
 
 - `MODERNA_TEARDOWN()`
 This macro is run at the end of a successful test. Treat this as if it is a destructor that will destruct tests. 
+
+## 2. The Global Context
+All variables that modify a test can be modified through its global context which is a structure declaration pertaining to the following : 
+```cpp
+struct test_context {
+  int thread_count = 1;
+  test_suite tests = test_suite{};
+  test_time_unit time_unit = test_time_unit::MICRO_SECONDS;
+}
+```
+To obtain the global context, call `moderna::test_lib::get_test_context()`, this will return a reference to the test context. 
+```cpp
+test_context& get_test_context();
+```

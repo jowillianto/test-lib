@@ -48,26 +48,26 @@ namespace moderna::test_lib {
     std::vector<std::unique_ptr<generic_test_entry>> __tests;
   };
 
-  /*
-    This is the singleton object that will be used to run tests.
-  */
-  export test_suite global_test_suite{};
+  // /*
+  //   This is the singleton object that will be used to run tests.
+  // */
+  // export test_suite global_test_suite{};
 
-  /*
-    These functions can be used to manipulate the test suite
-  */
-  export template <std::invocable F, is_exception... exceptions>
-  test_suite &add_test(
-    F &&f,
-    std::string_view test_name = get_type_name<F>(),
-    exception_pack<exceptions...> p = exception_pack<>{},
-    test_suite &suite = global_test_suite
-  ) {
-    suite.add_test(std::forward<F>(f), test_name, p);
-    return suite;
-  }
+  // /*
+  //   These functions can be used to manipulate the test suite
+  // */
+  // export template <std::invocable F, is_exception... exceptions>
+  // test_suite &add_test(
+  //   F &&f,
+  //   std::string_view test_name = get_type_name<F>(),
+  //   exception_pack<exceptions...> p = exception_pack<>{},
+  //   test_suite &suite = global_test_suite
+  // ) {
+  //   suite.add_test(std::forward<F>(f), test_name, p);
+  //   return suite;
+  // }
 
-  export test_suite &get_global_test() {
-    return global_test_suite;
-  }
+  // export test_suite &get_global_test() {
+  //   return global_test_suite;
+  // }
 }

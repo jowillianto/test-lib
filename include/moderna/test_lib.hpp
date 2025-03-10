@@ -4,7 +4,7 @@
   }; \
   struct name##_initiator { \
     name##_initiator() { \
-      moderna::test_lib::add_test(name{}); \
+      moderna::test_lib::get_test_context().tests.add_test(name{}); \
     } \
   }; \
   static name##_initiator name##_var{}; \

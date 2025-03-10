@@ -11,6 +11,7 @@ module;
 export module moderna.test_lib:test_runner;
 import :test_suite;
 import :test_entry;
+import :test_context;
 import :exception;
 
 namespace moderna::test_lib {
@@ -87,22 +88,16 @@ namespace moderna::test_lib {
       }
     }
   };
-  test_runner global_test_runner{std::nullopt};
-  export void set_thread_count(size_t count) {
-    global_test_runner.set_thread_count(count);
-  }
-  export void unset_thread_count() {
-    global_test_runner.unset_thread_count();
-  }
-  export std::optional<size_t> get_thread_count() {
-    return global_test_runner.get_thread_count();
-  }
-  export test_runner &get_global_runner() {
-    return global_test_runner;
-  }
 
-  export std::vector<test_result> run_tests(const test_suite &suite = get_global_test()) {
-    return get_global_runner().run_test_suite(suite);
+  export std::vector<test_result> run_tests(
+    const test_suite &suite = get_test_context().tests,
+    size_t thread_count = get_test_context().thread_count
+  ) {
+    if (thread_count == 1) {
+      return sequential_runner{}.run_test_suite(suite);
+    } else {
+      return multithreaded_runner{thread_count}.run_test_suite(suite);
+    }
   }
 
   export std::expected<std::pair<size_t, size_t>, fail_assertion> print_test_result(
@@ -121,10 +116,7 @@ namespace moderna::test_lib {
     for (const auto &[res, test] : std::ranges::zip_view{vec, suite}) {
       if (res.is_ok()) {
         std::println(
-          "{}. Test {} ({} μs) OK\n",
-          i,
-          test->name(),
-          std::chrono::duration_cast<std::chrono::microseconds>(res.running_time()).count()
+          "{}. Test {} ({}) OK\n", i, test->name(), get_test_context().get_time(res.running_time())
         );
       } else {
         std::println(
@@ -140,7 +132,7 @@ namespace moderna::test_lib {
     return std::pair{ok_count, err_count};
   }
   export int run_all_and_exit(
-    size_t thread_count = 10, const test_suite &suite = get_global_test()
+    size_t thread_count = 10, const test_suite &suite = get_test_context().tests
   ) {
     auto results = run_tests(suite);
     auto [ok_count, err_count] = print_test_result(results, suite).value();
