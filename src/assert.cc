@@ -218,12 +218,14 @@ namespace moderna::test_lib {
   void assert_expected(
     const std::expected<T, E> &e, const std::source_location &loc = std::source_location::current()
   ) {
-    if constexpr (requires() { e.error().what(); }) {
-      test_lib::assert_true(e.has_value(), e.error().what(), loc);
-    } else if constexpr (std::formattable<E, char>) {
-      test_lib::assert_true(e.has_value(), std::format("{}", e.error()), loc);
-    } else {
-      test_lib::assert_true(e.has_value(), "Expected Value is not true", loc);
+    if (!e.has_value()) {
+      if constexpr (requires() { e.error().what(); }) {
+        test_lib::assert_true(e.has_value(), e.error().what(), loc);
+      } else if constexpr (std::formattable<E, char>) {
+        test_lib::assert_true(e.has_value(), std::format("{}", e.error()), loc);
+      } else {
+        test_lib::assert_true(e.has_value(), "Expected Value is not true", loc);
+      }
     }
   }
 
