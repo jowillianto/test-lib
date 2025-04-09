@@ -5,6 +5,8 @@ RUN cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
   -DMODERNA_TEST_LIB_BUILD_TESTS=ON \
-  -B build .
+  -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
+  -Bbuild .
 WORKDIR /app/build
-RUN ninja test
+RUN ninja 
+RUN ASAN_OPTIONS=alloc_dealloc_mismatch=0 ninja test 
