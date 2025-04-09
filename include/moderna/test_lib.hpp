@@ -31,5 +31,5 @@
     static void tear_down(); \
   }; \
   static moderna::test_lib::test_setup<moderna::test_lib::setup_mode::TEAR_DOWN> \
-    __moderna_test_lib_setup; \
+    __moderna_test_lib_teardown; \
   void moderna::test_lib::test_setup<moderna::test_lib::setup_mode::TEAR_DOWN>::tear_down()
