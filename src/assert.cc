@@ -4,6 +4,7 @@ module;
 #include <ranges>
 #include <source_location>
 #include <string_view>
+#include <cmath>
 export module moderna.test_lib:assert;
 import :exception;
 
@@ -34,19 +35,23 @@ namespace moderna::test_lib {
   ) {
     if (x != y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
-        throw fail_assertion(std::format(
-          "At {} Line {} , {} is not equal to {}",
-          std::string_view{std::string_view{location.file_name()}},
-          location.line(),
-          x,
-          y
-        ));
+        throw fail_assertion(
+          std::format(
+            "At {} Line {} , {} is not equal to {}",
+            std::string_view{std::string_view{location.file_name()}},
+            location.line(),
+            x,
+            y
+          )
+        );
       } else {
-        throw fail_assertion(std::format(
-          "Assertion error at line {} file {}",
-          location.line(),
-          std::string_view{location.file_name()}
-        ));
+        throw fail_assertion(
+          std::format(
+            "Assertion error at line {} file {}",
+            location.line(),
+            std::string_view{location.file_name()}
+          )
+        );
       }
     }
   }
@@ -60,19 +65,23 @@ namespace moderna::test_lib {
   ) {
     if (x == y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
-        throw fail_assertion(std::format(
-          "At {} Line {} , {} is not equal to {}",
-          std::string_view{location.file_name()},
-          location.line(),
-          x,
-          y
-        ));
+        throw fail_assertion(
+          std::format(
+            "At {} Line {} , {} is not equal to {}",
+            std::string_view{location.file_name()},
+            location.line(),
+            x,
+            y
+          )
+        );
       } else {
-        throw fail_assertion(std::format(
-          "Assertion error at line {} file {}",
-          location.line(),
-          std::string_view{location.file_name()}
-        ));
+        throw fail_assertion(
+          std::format(
+            "Assertion error at line {} file {}",
+            location.line(),
+            std::string_view{location.file_name()}
+          )
+        );
       }
     }
   }
@@ -88,25 +97,36 @@ namespace moderna::test_lib {
   ) {
     if (x >= y) {
       if constexpr (std::formattable<T, char> && std::formattable<V, char>) {
-        throw fail_assertion(std::format(
-          "At {} Line {} , {} is not less than {}",
-          std::string_view{location.file_name()},
-          location.line(),
-          x,
-          y
-        ));
+        throw fail_assertion(
+          std::format(
+            "At {} Line {} , {} is not less than {}",
+            std::string_view{location.file_name()},
+            location.line(),
+            x,
+            y
+          )
+        );
       } else {
-        throw fail_assertion(std::format(
-          "Assertion error at line {} file {}",
-          location.line(),
-          std::string_view{location.file_name()}
-        ));
+        throw fail_assertion(
+          std::format(
+            "Assertion error at line {} file {}",
+            location.line(),
+            std::string_view{location.file_name()}
+          )
+        );
       }
     }
   }
 
   export template <std::ranges::input_range T, std::ranges::input_range V, typename F>
-    requires(std::invocable<F, std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> || std::invocable<F, std::ranges::range_value_t<T>, std::ranges::range_value_t<V>, std::source_location>)
+    requires(
+      std::invocable<F, std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> ||
+      std::invocable<
+        F,
+        std::ranges::range_value_t<T>,
+        std::ranges::range_value_t<V>,
+        std::source_location>
+    )
   void assert_func(
     const T &x,
     const V &y,
@@ -135,7 +155,9 @@ namespace moderna::test_lib {
     Cheks the equality of two containers supporting the ranges paradigm.
   */
   export template <std::ranges::input_range T, std::ranges::input_range V>
-    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
+    requires(
+      equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>
+    )
   void assert_equal(
     const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
@@ -153,7 +175,9 @@ namespace moderna::test_lib {
     Checks if two range containers are all less then the first one
   */
   export template <std::ranges::input_range T, std::ranges::input_range V>
-    requires(lt_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !lt_comp<T, V>)
+    requires(
+      lt_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !lt_comp<T, V>
+    )
   void assert_lt(
     const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
@@ -168,7 +192,9 @@ namespace moderna::test_lib {
     Assert non equality
   */
   export template <std::ranges::input_range T, std::ranges::input_range V>
-    requires(equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>)
+    requires(
+      equal_comp<std::ranges::range_value_t<T>, std::ranges::range_value_t<V>> && !equal_comp<T, V>
+    )
   void assert_not_equal(
     const T &x, const V &y, const std::source_location &location = std::source_location::current()
   ) {
@@ -191,9 +217,11 @@ namespace moderna::test_lib {
     const std::source_location &location = std::source_location::current()
   ) {
     if (!expr) {
-      throw fail_assertion(std::format(
-        "At {} Line {} , {}", std::string_view{location.file_name()}, location.line(), err_msg
-      ));
+      throw fail_assertion(
+        std::format(
+          "At {} Line {} , {}", std::string_view{location.file_name()}, location.line(), err_msg
+        )
+      );
     }
   }
   export void assert_false(
@@ -202,9 +230,11 @@ namespace moderna::test_lib {
     const std::source_location &location = std::source_location::current()
   ) {
     if (expr) {
-      throw fail_assertion(std::format(
-        "At {} Line {} , {}", std::string_view{location.file_name()}, location.line(), err_msg
-      ));
+      throw fail_assertion(
+        std::format(
+          "At {} Line {} , {}", std::string_view{location.file_name()}, location.line(), err_msg
+        )
+      );
     }
   }
 
@@ -229,6 +259,19 @@ namespace moderna::test_lib {
     }
   }
 
+  export template <typename T, typename E>
+  T assert_expected_value(
+    std::expected<T, E> &&res, const std::source_location &loc = std::source_location::current()
+  ) {
+    if (res.has_value()) {
+      return std::move(res.value());
+    } else {
+      // This is going to throw
+      assert_expected(res, loc);
+      throw;
+    }
+  }
+
   export template <is_exception... exceptions>
   void assert_throw(
     std::invocable auto &&f, const std::source_location &loc = std::source_location::current()
@@ -244,5 +287,11 @@ namespace moderna::test_lib {
       } catch (...) {
       }
     }
+  }
+
+  template <std::floating_point number_type>
+  void assert_close(number_type l, number_type r, number_type tol = 1e-6, const std::source_location& loc = std::source_location::current()) {
+    number_type rms_diff = std::sqrt(( l - r ) * ( l - r ));
+    assert_lt(rms_diff, tol, loc);
   }
 }
