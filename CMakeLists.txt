@@ -123,5 +123,5 @@ function(moderna_add_test target_name)
 endfunction()
 
 if (MODERNA_TEST_LIB_BUILD_TESTS)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tests)
+  add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tests)
 endif()

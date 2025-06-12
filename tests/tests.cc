@@ -1,7 +1,8 @@
-import moderna.test_lib;
 #include <moderna/test_lib.hpp>
+#include <chrono>
 #include <print>
 #include <stdexcept>
+import moderna.test_lib;
 
 namespace test_lib = moderna::test_lib;
 
