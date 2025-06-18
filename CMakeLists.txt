@@ -125,3 +125,27 @@ endfunction()
 if (MODERNA_TEST_LIB_BUILD_TESTS)
   add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/tests)
 endif()
+
+set (MODERNA_COMPONENT_NAME "test_lib")
+include(GNUInstallDirs)
+install (
+  TARGETS ${PROJECT_NAME}
+  EXPORT moderna
+  FILE_SET 
+    CXX_MODULES 
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/cxx_modules/moderna/${MODERNA_COMPONENT_NAME}
+    COMPONENT ${MODERNA_COMPONENT_NAME}_file_set
+  CXX_MODULES_BMI 
+    COMPONENT ${MODERNA_COMPONENT_NAME}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/cxx_modules/moderna/${MODERNA_COMPONENT_NAME}
+)
+
+if (PROJECT_IS_TOP_LEVEL)
+  install (
+    EXPORT moderna
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/moderna
+    FILE moderna-config.cmake
+    NAMESPACE moderna::
+    CXX_MODULES_DIRECTORY cxx_modules/moderna
+  )
+endif()
