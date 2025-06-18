@@ -15,11 +15,15 @@ if (NOT TARGET ${PROJECT_NAME})
   )
   target_sources(${PROJECT_NAME}
     PUBLIC
-      FILE_SET CXX_MODULES FILES ${${PROJECT_NAME}_src}
-  )
-  target_include_directories(${PROJECT_NAME}
-    PUBLIC
-      "${CMAKE_CURRENT_LIST_DIR}/include"
+      FILE_SET CXX_MODULES 
+        FILES ${${PROJECT_NAME}_src}
+      FILE_SET HEADERS 
+        BASE_DIRS 
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+          $<INSTALL_INTERFACE:include>
+        FILES 
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/moderna/test_lib.hpp>
+          $<INSTALL_INTERFACE:include/moderna/test_lib.hpp>
   )
 endif()
 
@@ -131,6 +135,9 @@ include(GNUInstallDirs)
 install (
   TARGETS ${PROJECT_NAME}
   EXPORT moderna
+  FILE_SET
+    HEADERS
+    COMPONENT ${MODERNA_COMPONENT_NAME}_header
   FILE_SET 
     CXX_MODULES 
     DESTINATION ${CMAKE_INSTALL_PREFIX}/cxx_modules/moderna/${MODERNA_COMPONENT_NAME}
